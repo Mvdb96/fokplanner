@@ -88,6 +88,7 @@ h3.gh{margin:14px 0 4px;font-size:1rem;color:var(--mut)}
 <main>
 <header class="top"><button id="mb" class="btn" onclick="toggleMenu()" aria-label="Menu">☰</button><h1>Fokplanner</h1><span class="mut" id="mt">Fokdieren</span></header>
 <nav id="mn" class="menu hide"><button class="tab on" id="t-birds" onclick="tab('birds');toggleMenu(false)">Fokdieren</button><button class="tab" id="t-pairs" onclick="tab('pairs');toggleMenu(false)">Combinaties</button><button class="tab" id="t-match" onclick="tab('match');toggleMenu(false)">Beste match</button><button class="tab" id="t-cmp" onclick="tab('cmp');toggleMenu(false)">Vergelijken</button><button class="tab" id="t-goal" onclick="tab('goal');toggleMenu(false)">Fokdoel</button><button class="tab" id="t-data" onclick="tab('data');toggleMenu(false)">Instellingen</button></nav>
+<div id="bkbar"></div>
 <div id="v-birds"></div>
 <div id="v-pairs" class="hide"></div>
 <div id="v-match" class="hide"></div>
@@ -99,7 +100,7 @@ h3.gh{margin:14px 0 4px;font-size:1rem;color:var(--mut)}
 <script>
 const SUG=["Enkelvoudige kam","Rozenkam","Erwtenkam","V-kam","Kuif","Baard en bakkebaard","Gevederde poten","Vijf tenen","Gele poten","Leikleurige poten","Witte oorlel","Rode oorlel","Gebands","Gezoomd","Wit","Zwart","Koekoek","Patrijs","Lakenvelder","Blauwe eieren","Bruine eieren","Witte eieren","Dwergras"];
 (()=>{const d=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML"),set=d.set;Object.defineProperty(Element.prototype,"innerHTML",{get:d.get,configurable:true,set(v){const own=this.classList&&this.classList.contains("pickrow")?[this.scrollLeft]:null,rows=[...this.querySelectorAll(".pickrow")].map(e=>e.scrollLeft);set.call(this,v);if(own)this.scrollLeft=own[0];this.querySelectorAll(".pickrow").forEach((e,i)=>{if(rows[i])e.scrollLeft=rows[i]})}})})();
-let db,birds=[],pairs=[],bd=null,pd=null,pq="",goal=[],bad=[],known=[],mf=[],ms="",pv=null,hidden=[],types={},vmode="groot",pvp=null,bk=null,pbk=null,wt={},ref={haan:[],hen:[]},flt={sex:"",traits:[],year:"",pres:""},link={},cats={},ts=75,scope={},bonus={},ncat="type",nbon="",nsc="",showGone=false,addKind="goal",msex="",cmpIds=[],thm={},sortB="naam",sortP="jaar-nieuw";
+let db,birds=[],pairs=[],bd=null,pd=null,pq="",goal=[],bad=[],known=[],mf=[],ms="",pv=null,hidden=[],types={},vmode="groot",pvp=null,bk=null,pbk=null,wt={},ref={haan:[],hen:[]},flt={sex:"",traits:[],year:"",pres:""},link={},cats={},ts=75,scope={},bonus={},ncat="type",bkd={last:0,snooze:0},nbon="",nsc="",showGone=false,addKind="goal",msex="",cmpIds=[],thm={},sortB="naam",sortP="jaar-nieuw";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -108,8 +109,8 @@ function open(){return new Promise((ok,no)=>{const r=indexedDB.open("kippen",2);
 const all=s=>new Promise(ok=>{const q=db.transaction(s).objectStore(s).getAll();q.onsuccess=()=>ok(q.result)});
 const put=(s,o)=>new Promise(ok=>{const t=db.transaction(s,"readwrite");t.objectStore(s).put(o);t.oncomplete=ok});
 const rm=(s,id)=>new Promise(ok=>{const t=db.transaction(s,"readwrite");t.objectStore(s).delete(id);t.oncomplete=ok});
-async function load(){birds=await all("birds");pairs=await all("pairs");const mt=await all("meta"),g=mt.find(x=>x.id==="goal"),k=mt.find(x=>x.id==="known");goal=g?g.traits:DEF.slice();bad=(g&&g.bad)||[];types=g?(g.types||{...DEFT}):{...DEFT};wt=(g&&g.wt)||{};link=(g&&g.link)||{};cats=(g&&g.cats)||{};ts=(g&&g.ts)||75;scope=(g&&g.scope)||{};bonus=(g&&g.bonus)||{};birds.forEach(b=>b.traits=ordT(b.traits));for(const b of birds){const f=b.traits.filter(x=>applies(b,x));if(f.length!==b.traits.length){b.traits=f;await put("birds",b)}}known=k?k.traits:[];const hd=mt.find(x=>x.id==="hidden");hidden=hd?hd.traits:[];const vw=mt.find(x=>x.id==="view");vmode=vw?vw.v:"groot";sortB=(vw&&vw.sb)||"naam";sortP=(vw&&vw.sp)||"jaar-nieuw";showGone=!!(vw&&vw.sg);msex=(vw&&vw.sx)||"";{const th=mt.find(x=>x.id==="theme");thm=th?{ac:th.ac,bg:th.bg,card:th.card}:{};applyTheme()}const rf=mt.find(x=>x.id==="ref");ref=rf?{haan:rf.haan||[],hen:rf.hen||[]}:{haan:[],hen:[]};birds.sort((a,b)=>a.name.localeCompare(b.name));pairs.sort((a,b)=>b.updated-a.updated)}
-function show(v){$("mt").textContent={birds:"Fokdieren",pairs:"Combinaties",match:"Beste match",cmp:"Vergelijken",goal:"Fokdoel",data:"Instellingen"}[v];if(v!=="birds")pv=null;if(v!=="pairs")pvp=null;["birds","pairs","match","cmp","goal","data"].forEach(x=>{$("v-"+x).classList.toggle("hide",x!==v);$("t-"+x).classList.toggle("on",x===v)});({birds:rBirds,pairs:rPairs,match:rMatch,cmp:rCmp,goal:rGoal,data:rData})[v]()}
+async function load(){birds=await all("birds");pairs=await all("pairs");const mt=await all("meta"),g=mt.find(x=>x.id==="goal"),k=mt.find(x=>x.id==="known");goal=g?g.traits:DEF.slice();bad=(g&&g.bad)||[];types=g?(g.types||{...DEFT}):{...DEFT};wt=(g&&g.wt)||{};link=(g&&g.link)||{};cats=(g&&g.cats)||{};ts=(g&&g.ts)||75;scope=(g&&g.scope)||{};bonus=(g&&g.bonus)||{};{const bm=mt.find(x=>x.id==="bk");bkd=bm?{last:bm.last||0,snooze:bm.snooze||0}:{last:0,snooze:0}}birds.forEach(b=>b.traits=ordT(b.traits));for(const b of birds){const f=b.traits.filter(x=>applies(b,x));if(f.length!==b.traits.length){b.traits=f;await put("birds",b)}}known=k?k.traits:[];const hd=mt.find(x=>x.id==="hidden");hidden=hd?hd.traits:[];const vw=mt.find(x=>x.id==="view");vmode=vw?vw.v:"groot";sortB=(vw&&vw.sb)||"naam";sortP=(vw&&vw.sp)||"jaar-nieuw";showGone=!!(vw&&vw.sg);msex=(vw&&vw.sx)||"";{const th=mt.find(x=>x.id==="theme");thm=th?{ac:th.ac,bg:th.bg,card:th.card}:{};applyTheme()}const rf=mt.find(x=>x.id==="ref");ref=rf?{haan:rf.haan||[],hen:rf.hen||[]}:{haan:[],hen:[]};birds.sort((a,b)=>a.name.localeCompare(b.name));pairs.sort((a,b)=>b.updated-a.updated)}
+function show(v){if(db)bkBar();$("mt").textContent={birds:"Fokdieren",pairs:"Combinaties",match:"Beste match",cmp:"Vergelijken",goal:"Fokdoel",data:"Instellingen"}[v];if(v!=="birds")pv=null;if(v!=="pairs")pvp=null;["birds","pairs","match","cmp","goal","data"].forEach(x=>{$("v-"+x).classList.toggle("hide",x!==v);$("t-"+x).classList.toggle("on",x===v)});({birds:rBirds,pairs:rPairs,match:rMatch,cmp:rCmp,goal:rGoal,data:rData})[v]()}
 const bird=id=>birds.find(b=>b.id===id);
 /* ---------- Kippen ---------- */
 function newBird(){bk=null;bd={id:uid(),name:"",sex:"haan",photo:"",traits:[],notes:"",str:{},pair:""};rBirds()}
@@ -270,18 +271,18 @@ const goneTag=(b,cap)=>b.gone?` <span class="tag" style="margin:0;font-size:.72r
 function setF(k,v){flt[k]=v;rBirds()}
 
 async function exportFile(){
-  const txt=JSON.stringify({v:1,birds:await all("birds"),pairs:await all("pairs"),meta:await all("meta")});
+  const txt=JSON.stringify({v:1,birds:await all("birds"),pairs:await all("pairs"),meta:(await all("meta")).filter(m=>m.id!=="bk")});
   const nm="fokplanner-backup-"+new Date().toISOString().slice(0,10)+".json",file=new File([txt],nm,{type:"application/json"});
-  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Fokplanner back-up"});$("bkm").textContent="Back-up gedeeld. Kies bijvoorbeeld Drive, WhatsApp (naar jezelf) of Bestanden.";return}}catch(e){if(e&&e.name==="AbortError")return}
-  const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=nm;document.body.appendChild(a);a.click();a.remove();$("bkm").textContent="Back-up opgeslagen als bestand "+nm+" (zie je map Downloads)."}
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Fokplanner back-up"});$("bkm")&&($("bkm").textContent="Back-up gedeeld. Kies bijvoorbeeld Drive, WhatsApp (naar jezelf) of Bestanden.");await bkDone();return}}catch(e){if(e&&e.name==="AbortError")return}
+  const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=nm;document.body.appendChild(a);a.click();a.remove();$("bkm")&&($("bkm").textContent="Back-up opgeslagen als bestand "+nm+" (zie je map Downloads).");await bkDone()}
 async function importFile(inp){const f=inp.files&&inp.files[0];if(!f)return;const t=await f.text();inp.value="";await importText(t)}
 async function importText(txt){
   let d;try{d=JSON.parse(txt)}catch(e){}
   if(!d||!Array.isArray(d.birds)||!Array.isArray(d.pairs)){$("bkm").textContent="Dit is geen geldige back-up.";return}
   if(!confirm("Alle huidige gegevens worden vervangen door de back-up. Doorgaan?"))return;
   for(const s of ["birds","pairs","meta"])for(const o of await all(s))await rm(s,o.id);
-  for(const b of d.birds)await put("birds",b);for(const p of d.pairs)await put("pairs",p);for(const m of d.meta||[])await put("meta",m);
-  pv=null;pvp=null;await load();alert("Back-up teruggezet.");rData()}
+  for(const b of d.birds)await put("birds",b);for(const p of d.pairs)await put("pairs",p);for(const m of d.meta||[])if(m.id!=="bk")await put("meta",m);
+  pv=null;pvp=null;await load();await bkDone();alert("Back-up teruggezet.");rBirds();rData()}
 function rPed(){
   const b=bird(pv);if(!b){pv=null;return rBirds()}
   const p=pairs.find(x=>x.id===b.pair);
@@ -502,7 +503,7 @@ function rGoal(){
   ["gt","bt2"].forEach((id,n)=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();gAdd(n?"bad":"goal")}}))}
 function setMSex(v){msex=v;if(v&&ms&&bird(ms)&&bird(ms).sex!==v)ms="";saveView();rMatch()}
 function setGone(v){showGone=v;saveView();if(pd)rPick();else rMatch()}
-function rData(){$("v-data").innerHTML=themeCard()+`<div class="card"><h2 style="margin-top:0">Gegevens en back-up</h2><p class="mut">Je gegevens staan in de browser van dit apparaat. Met een back-up verhuis je ze naar een ander apparaat of een andere versie van de app.</p><div class="row"><button class="btn pri" onclick="exportFile()">Back-up opslaan als bestand</button><label class="btn fl">Terugzetten uit bestand<input type="file" accept=".json,application/json,text/plain" hidden onchange="importFile(this)"></label></div><div id="bkm" class="mut"></div></div><div class="card"><h2 style="margin-top:0">Internetadres van de app</h2><p class="mut">Open dit adres in je browser om de app te gebruiken of opnieuw op je beginscherm te zetten.</p><input id="lnk" readonly value="https://mvdb96.github.io/fokplanner/" onclick="this.select()"><div class="row" style="margin-top:8px"><button class="btn" onclick="copyLink()">Adres kopiëren</button><a class="btn" href="https://mvdb96.github.io/fokplanner/" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;color:var(--tx)">Openen</a></div><div id="lkm" class="mut"></div></div>`}
+function rData(){$("v-data").innerHTML=themeCard()+`<div class="card"><h2 style="margin-top:0">Gegevens en back-up</h2><p class="mut">Je gegevens staan in de browser van dit apparaat. Met een back-up verhuis je ze naar een ander apparaat of een andere versie van de app.</p><div class="row"><button class="btn pri" onclick="exportFile()">Back-up opslaan als bestand</button><label class="btn fl">Terugzetten uit bestand<input type="file" accept=".json,application/json,text/plain" hidden onchange="importFile(this)"></label></div><p class="mut" id="bki">${bkLabel()}</p><div id="bkm" class="mut"></div></div><div class="card"><h2 style="margin-top:0">Internetadres van de app</h2><p class="mut">Open dit adres in je browser om de app te gebruiken of opnieuw op je beginscherm te zetten.</p><input id="lnk" readonly value="https://mvdb96.github.io/fokplanner/" onclick="this.select()"><div class="row" style="margin-top:8px"><button class="btn" onclick="copyLink()">Adres kopiëren</button><a class="btn" href="https://mvdb96.github.io/fokplanner/" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;color:var(--tx)">Openen</a></div><div id="lkm" class="mut"></div></div>`}
 async function copyLink(){const i=$("lnk");try{await navigator.clipboard.writeText(i.value);$("lkm").textContent="Adres gekopieerd."}catch(e){i.select();$("lkm").textContent="Kopiëren lukte niet. Houd de tekst ingedrukt en kies Kopiëren."}}
 /* ---------- Kleuren ---------- */
 const hexRgb=h=>{h=h.replace("#","");return[0,2,4].map(i=>parseInt(h.substr(i,2),16))};
@@ -625,8 +626,17 @@ async function gSetS(v){const t=gtr(),k=key(t);
     scope[k]=v}else delete scope[k];saveGoal()}
 function gSetB(v){const k=key(gtr());if(v)bonus[k]=true;else delete bonus[k];saveGoal()}
 function gMove(d){const[kind,si]=gedit.split(":"),i=+si,arr=kind==="goal"?goal:bad;let j=i+d;if(kind==="goal"){const c=catOf(arr[i]);while(j>=0&&j<arr.length&&catOf(arr[j])!==c)j+=d}if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];gedit=kind+":"+j;saveGoal()}
+const DAY=864e5;
+async function bkDone(){bkd={last:Date.now(),snooze:0};await put("meta",{id:"bk",last:bkd.last,snooze:0});bkBar();if($("bki"))$("bki").textContent=bkLabel()}
+async function bkSnooze(){bkd.snooze=Date.now()+DAY;await put("meta",{id:"bk",last:bkd.last,snooze:bkd.snooze});bkBar()}
+const bkLabel=()=>bkd.last?`Laatste back-up: ${new Date(bkd.last).toLocaleDateString("nl-NL",{day:"numeric",month:"long",year:"numeric"})}`:"Je hebt nog geen back-up gemaakt.";
+function bkBar(){const el=$("bkbar");if(!el)return;const empty=!birds.length&&!pairs.length;
+  if(empty){el.innerHTML=`<div class="card" style="margin:0 0 10px"><b>Nieuwe of lege app?</b><p class="mut" style="margin:4px 0 8px">Heb je eerder een back-up opgeslagen? Kies het bestand om al je dieren terug te zetten.</p><label class="btn pri fl" style="display:block">Back-up terugzetten<input type="file" accept=".json,application/json,text/plain" hidden onchange="importFile(this)"></label></div>`;return}
+  const old=!bkd.last||Date.now()-bkd.last>7*DAY;
+  if(old&&Date.now()>bkd.snooze){const d=bkd.last?Math.floor((Date.now()-bkd.last)/DAY):0;el.innerHTML=`<div class="card" style="margin:0 0 10px"><b>Tijd voor een back-up</b><p class="mut" style="margin:4px 0 8px">${bkd.last?`De laatste back-up is ${d} dagen oud.`:"Je hebt nog geen back-up gemaakt."} Sla hem op in Drive, Bestanden of stuur hem naar jezelf, dan raak je niets kwijt.</p><div class="row"><button class="btn pri" onclick="exportFile()">Nu opslaan</button><button class="btn" onclick="bkSnooze()">Later</button></div></div>`}
+  else el.innerHTML=""}
 /* ---------- Start ---------- */
-(async()=>{try{db=await open();await load();rBirds()}catch(e){$("v-birds").innerHTML='<div class="card">Opslag in de browser is niet beschikbaar (privévenster?). Open de pagina in een gewoon venster.</div>'}})();
+(async()=>{try{db=await open();await load();rBirds();bkBar();try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}catch(e){$("v-birds").innerHTML='<div class="card">Opslag in de browser is niet beschikbaar (privévenster?). Open de pagina in een gewoon venster.</div>'}})();
 </script>
 <script>if("serviceWorker" in navigator)addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});</script>
 </body>
