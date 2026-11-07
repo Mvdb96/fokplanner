@@ -269,17 +269,12 @@ function setPresF(v){flt.pres=v;rBirds()}
 const goneTag=(b,cap)=>b.gone?` <span class="tag" style="margin:0;font-size:.72rem">${cap?"Niet meer aanwezig":"niet meer aanwezig"}</span>`:"";
 function setF(k,v){flt[k]=v;rBirds()}
 
-async function exportData(){
-  const txt=JSON.stringify({v:1,birds:await all("birds"),pairs:await all("pairs"),meta:await all("meta")});
-  try{await navigator.clipboard.writeText(txt);$("bkm").textContent="Back-up gekopieerd. Plak hem ergens veilig, bijvoorbeeld in een notitie of een mail aan jezelf."}
-  catch(e){const ta=$("bkt");ta.value=txt;ta.select();$("bkm").textContent="Automatisch kopiëren lukte niet. Kopieer de tekst hierboven zelf."}}
 async function exportFile(){
   const txt=JSON.stringify({v:1,birds:await all("birds"),pairs:await all("pairs"),meta:await all("meta")});
   const nm="fokplanner-backup-"+new Date().toISOString().slice(0,10)+".json",file=new File([txt],nm,{type:"application/json"});
   try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Fokplanner back-up"});$("bkm").textContent="Back-up gedeeld. Kies bijvoorbeeld Drive, WhatsApp (naar jezelf) of Bestanden.";return}}catch(e){if(e&&e.name==="AbortError")return}
   const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=nm;document.body.appendChild(a);a.click();a.remove();$("bkm").textContent="Back-up opgeslagen als bestand "+nm+" (zie je map Downloads)."}
 async function importFile(inp){const f=inp.files&&inp.files[0];if(!f)return;const t=await f.text();inp.value="";await importText(t)}
-async function importData(){await importText($("bkt").value)}
 async function importText(txt){
   let d;try{d=JSON.parse(txt)}catch(e){}
   if(!d||!Array.isArray(d.birds)||!Array.isArray(d.pairs)){$("bkm").textContent="Dit is geen geldige back-up.";return}
@@ -507,7 +502,8 @@ function rGoal(){
   ["gt","bt2"].forEach((id,n)=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();gAdd(n?"bad":"goal")}}))}
 function setMSex(v){msex=v;if(v&&ms&&bird(ms)&&bird(ms).sex!==v)ms="";saveView();rMatch()}
 function setGone(v){showGone=v;saveView();if(pd)rPick();else rMatch()}
-function rData(){$("v-data").innerHTML=themeCard()+`<div class="card"><h2 style="margin-top:0">Gegevens en back-up</h2><p class="mut">Je gegevens staan in de browser van dit apparaat. Met een back-up verhuis je ze naar een ander apparaat of een andere versie van de app.</p><div class="row"><button class="btn pri" onclick="exportFile()">Back-up opslaan als bestand</button><label class="btn fl">Terugzetten uit bestand<input type="file" accept=".json,application/json,text/plain" hidden onchange="importFile(this)"></label></div><p class="mut" style="font-size:.85rem">Een bestand is betrouwbaarder dan kopiëren: een back-up met foto\'s is te groot voor Notities of WhatsApp als tekst. Zonder foto\'s kan kopiëren wel.</p><div class="row"><button class="btn" onclick="exportData()">Back-up kopiëren</button><button class="btn" onclick="importData()">Terugzetten uit tekst</button></div><textarea id="bkt" rows="3" placeholder="Plak hier een back-up en tik op Terugzetten"></textarea><div id="bkm" class="mut"></div></div>`}
+function rData(){$("v-data").innerHTML=themeCard()+`<div class="card"><h2 style="margin-top:0">Gegevens en back-up</h2><p class="mut">Je gegevens staan in de browser van dit apparaat. Met een back-up verhuis je ze naar een ander apparaat of een andere versie van de app.</p><div class="row"><button class="btn pri" onclick="exportFile()">Back-up opslaan als bestand</button><label class="btn fl">Terugzetten uit bestand<input type="file" accept=".json,application/json,text/plain" hidden onchange="importFile(this)"></label></div><div id="bkm" class="mut"></div></div><div class="card"><h2 style="margin-top:0">Internetadres van de app</h2><p class="mut">Open dit adres in je browser om de app te gebruiken of opnieuw op je beginscherm te zetten.</p><input id="lnk" readonly value="https://mvdb96.github.io/fokplanner/" onclick="this.select()"><div class="row" style="margin-top:8px"><button class="btn" onclick="copyLink()">Adres kopiëren</button><a class="btn" href="https://mvdb96.github.io/fokplanner/" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;color:var(--tx)">Openen</a></div><div id="lkm" class="mut"></div></div>`}
+async function copyLink(){const i=$("lnk");try{await navigator.clipboard.writeText(i.value);$("lkm").textContent="Adres gekopieerd."}catch(e){i.select();$("lkm").textContent="Kopiëren lukte niet. Houd de tekst ingedrukt en kies Kopiëren."}}
 /* ---------- Kleuren ---------- */
 const hexRgb=h=>{h=h.replace("#","");return[0,2,4].map(i=>parseInt(h.substr(i,2),16))};
 const rgbHex=a=>"#"+a.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join("");
