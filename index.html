@@ -256,7 +256,7 @@ function pickB(w,id){pd[w]=pd[w]===id?"":id;rPick();rPT();rOver()}
 /* ---------- Detailweergave en navigatie ---------- */
 const th2=(b,s)=>`<div class="t" style="width:${s}px;height:${s}px">${b&&b.photo?`<img src="${b.photo}" alt="">`:(b?(sxi(b.sex)):"?")}</div>`;
 const kidTiles=(id,click)=>birds.filter(k=>k.pair===id).map(k=>`<div class="kid"${click?` onclick="openBird('${k.id}',{t:'pair',id:'${id}'})"`:""}>${th2(k,64)}<span>${esc(k.name)}</span></div>`).join("")||'<span class="mut">Nog geen nakomelingen.</span>';
-function tab(v){if(v==="brood"){bv=null;bp=null}if(v==="birds")pv=null;if(v==="pairs")pvp=null;show(v)}
+function tab(v){if(v==="brood"){bv=null;bp=null;bch=false}if(v==="birds")pv=null;if(v==="pairs")pvp=null;show(v)}
 function openBird(id,from){pv=id;bk=from||null;bd=null;show("birds")}
 function openPair(id,from){pvp=id;pbk=from||null;pd=null;show("pairs")}
 function pdOpen(id){if(pd)return;openBird(id,{t:"pair",id:pvp})}
@@ -646,7 +646,7 @@ function bkBar(){const el=$("bkbar");if(!el)return;const empty=!birds.length&&!p
   if(old&&Date.now()>bkd.snooze){const d=bkd.last?Math.floor((Date.now()-bkd.last)/DAY):0;el.innerHTML=`<div class="card" style="margin:0 0 10px"><b>Tijd voor een back-up</b><p class="mut" style="margin:4px 0 8px">${bkd.last?`De laatste back-up is ${d} dagen oud.`:"Je hebt nog geen back-up gemaakt."} Sla hem op in Drive, Bestanden of stuur hem naar jezelf, dan raak je niets kwijt.</p><div class="row"><button class="btn pri" onclick="exportFile()">Nu opslaan</button><button class="btn" onclick="bkSnooze()">Later</button></div></div>`}
   else el.innerHTML=""}
 /* ---------- Broedkalender ---------- */
-let brood=[],bp=null,bv=null,bpick="";
+let brood=[],bp=null,bv=null,bpick="",bch=false;
 const saveBrood=()=>put("meta",{id:"brood",plans:brood});
 const isoD=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const todayI=()=>isoD(new Date());
@@ -658,81 +658,87 @@ const bNm=id=>{const b=bird(id);return b?esc(b.name):"(verwijderd)"};
 const bTh=b=>b.photo?`<img src="${b.photo}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex:none">`:`<div class="ph" style="width:56px;height:56px;flex:none">${sxi(b.sex)}</div>`;
 function bPlan(p){
   const fert=+p.fert||14,eggs=Math.max(1,+p.eggs||12),hd=+p.hatch||21,days=Math.ceil(eggs*1.5);
-  const sp=addD(p.start,fert),b0=p.bstart||addD(sp,days),hatch=addD(b0,hd);
-  const ev=[{d:p.start,t:"Haan en hen bij elkaar zetten"}];
-  if(fert>10)ev.push({d:addD(p.start,10),t:"Eerste eieren kunnen nu al van de nieuwe haan zijn (nog niet zeker)"});
-  ev.push({d:sp,t:"Eieren zijn zeker bevrucht door deze haan. Begin met eieren sparen"});
-  ev.push({d:b0,t:p.bstart?"Eieren in de broedmachine of onder de hen gelegd":"Genoeg eieren (± "+eggs+"). Leg ze in de broedmachine of onder de hen"});
+  const inl=!!p.bstart,sp=p.start?addD(p.start,fert):"",b0=inl?p.bstart:addD(sp,days),hatch=addD(b0,hd);
+  const ev=[];
+  if(p.start)ev.push({d:p.start,t:"Haan en hen bij elkaar gezet"});
+  if(!inl){if(fert>10)ev.push({d:addD(p.start,10),t:"Eerste eieren kunnen nu al van de nieuwe haan zijn (nog niet zeker)"});
+    ev.push({d:sp,t:"Eieren zijn zeker bevrucht door deze haan. Begin met eieren sparen"})}
+  else if(sp&&sp<=b0)ev.push({d:sp,t:"Vanaf deze datum gelegde eieren zijn zeker van deze haan"});
+  ev.push({d:b0,t:inl?"Eieren in de broedmachine of onder de hen gelegd":"Genoeg eieren (± "+eggs+"). Leg ze in de broedmachine of onder de hen"});
   ev.push({d:addD(b0,7),t:"Eerste keer schouwen (lichten). Onbevruchte eieren eruit"});
   ev.push({d:addD(b0,14),t:"Tweede keer schouwen"});
   ev.push({d:addD(b0,hd-3),t:"Stop met keren, laat het rustig en zet de luchtvochtigheid hoger"});
   ev.push({d:hatch,t:"Verwachte uitkomst"});
   ev.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
-  return{fert,eggs,hd,days,sp,b0,hatch,ev}}
+  return{fert,eggs,hd,days,sp,b0,hatch,ev,inl,early:inl&&!!sp&&b0<sp}}
 function bStat(p){
   const q=bPlan(p),t=todayI(),n=d=>diffD(d,t);
   if(p.done||n(q.hatch)>3)return{txt:"Afgerond",ph:4,q};
   if(n(q.hatch)>=0)return{txt:"Kuikens verwacht",ph:3,q};
   if(n(q.b0)>=0)return{txt:"Broeden, dag "+(n(q.b0)+1)+" van "+q.hd,ph:3,q};
-  if(n(q.sp)>=0)return{txt:"Eieren sparen",ph:2,q};
-  if(n(p.start)>=0)return{txt:"Samen, wachten op bevruchting (dag "+(n(p.start)+1)+")",ph:1,q};
+  if(!q.inl&&n(q.sp)>=0)return{txt:"Eieren sparen",ph:2,q};
+  if(p.start&&n(p.start)>=0)return{txt:"Samen, wachten op bevruchting (dag "+(n(p.start)+1)+")",ph:1,q};
   return{txt:"Gepland",ph:0,q}}
 const bNext=q=>q.ev.find(e=>e.d>=todayI());
 function reco(b,n){const opp=b.sex==="haan"?"hen":"haan";
   return birds.filter(x=>x.sex===opp&&!x.gone).map(p=>{const r=b.sex==="haan"?b:p,h=b.sex==="haan"?p:b;return{p,P:potency(r,h),comp:goal.filter(g=>val(p,g)>val(b,g)),bu:bad.filter(g=>bval(b,g)||bval(p,g))}}).sort((a,c)=>c.P.pct-a.P.pct||c.P.plus-a.P.plus||byName(a.p,c.p)).slice(0,n||5)}
 const bTL=q=>{const nx=bNext(q);return `<div class="tl">${q.ev.map(e=>`<div class="tli${e.d<todayI()?" past":""}${e===nx?" cur":""}"><i></i><div><b>${fmtL(e.d)}</b> <span class="mut">· ${relD(e.d)}</span><div>${e.t}</div></div></div>`).join("")}</div>`};
-const bInfo=q=>`<p class="mut" style="margin:8px 0">Eieren sparen duurt ongeveer ${q.days} dagen (rekening houdend met 2 eieren per 3 dagen).</p>${q.days>10&&!q.custom?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die langer dan ± 10 dagen liggen komen minder goed uit. Bewaar ze koel (12 tot 16 °C), de punt naar beneden, en draai ze elke dag. Overweeg anders in twee rondes te broeden.</p>`:""}`;
-function bNew(r,h){bp={id:uid(),rooster:r||"",hen:h||"",start:todayI(),eggs:12,fert:14,hatch:21,bstart:"",notes:"",done:false,isNew:true};bv=null;show("brood")}
-function bEdit(id){bp=JSON.parse(JSON.stringify(brood.find(x=>x.id===id)));show("brood")}
-function bOpen(id){bv=id;bp=null;show("brood")}
-function bBack(){bv=null;bp=null;show("brood")}
+const bInfo=q=>q.inl?(q.early?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die vóór ${fmtL(q.sp)} zijn gelegd kunnen nog van een andere haan zijn.</p>`:""):`<p class="mut" style="margin:8px 0">Eieren sparen duurt ongeveer ${q.days} dagen (rekening houdend met 2 eieren per 3 dagen).</p>${q.days>10?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die langer dan ± 10 dagen liggen komen minder goed uit. Bewaar ze koel (12 tot 16 °C), de punt naar beneden, en draai ze elke dag. Overweeg anders in twee rondes te broeden.</p>`:""}`;
+function bNew(r,h){bp={id:uid(),rooster:r,hen:h,start:todayI(),eggs:12,fert:14,hatch:21,bstart:"",inl:false,notes:"",done:false,isNew:true};bv=null;bch=false;show("brood")}
+function bpMode(v){bp.inl=!!v;if(v){if(!bp.bstart)bp.bstart=todayI()}else bp.bstart="";rBrood()}
+async function mkPair(r,h){const p={id:uid(),name:(bird(r)?bird(r).name:"")+" × "+(bird(h)?bird(h).name:""),rooster:r,hen:h,notes:"",updated:Date.now(),year:new Date().getFullYear()};await put("pairs",p);await load();openPair(p.id)}
+function bCh(v){bch=v;bv=null;bp=null;rBrood()}
+function bEdit(id){bp=JSON.parse(JSON.stringify(brood.find(x=>x.id===id)));bp.inl=!!bp.bstart;show("brood")}
+function bOpen(id){bv=id;bp=null;bch=false;show("brood")}
+function bBack(){bv=null;bp=null;bch=false;show("brood")}
 function bpSet(k,v){bp[k]=bp[k]===v&&(k==="rooster"||k==="hen")?"":v;rBrood()}
 function bpF(k,v){bp[k]=v;bPrev()}
-function bPrev(){const el=$("bprev");if(!el||!bp||!bp.start)return;const q=bPlan(bp);q.custom=!!bp.bstart;el.innerHTML=bInfo(q)+bTL(q)}
-async function bSave(){if(!bp.rooster||!bp.hen){alert("Kies een haan en een hen.");return}if(!bp.start){alert("Kies een datum waarop ze bij elkaar komen.");return}
+function bPrev(){const el=$("bprev");if(!el||!bp||(!bp.start&&!bp.bstart))return;const q=bPlan(bp);el.innerHTML=bInfo(q)+bTL(q)}
+async function bSave(){if(!bp.inl)bp.bstart="";if(!bp.inl&&!bp.start){alert("Kies een datum waarop ze bij elkaar komen.");return}if(bp.inl&&!bp.bstart){alert("Kies de datum waarop de eieren zijn ingelegd.");return}
   const p={...bp};delete p.isNew;const i=brood.findIndex(x=>x.id===p.id);if(i>=0)brood[i]=p;else brood.push(p);await saveBrood();bv=p.id;bp=null;show("brood")}
 function bDel(id){ask("Weet je zeker dat je dit broedplan wilt verwijderen?",async()=>{brood=brood.filter(x=>x.id!==id);await saveBrood();bv=null;show("brood")})}
 async function bDone(id,v){const p=brood.find(x=>x.id===id);p.done=v;await saveBrood();rBrood()}
-function bPair(id){const p=brood.find(x=>x.id===id),e=pairs.find(x=>x.rooster===p.rooster&&x.hen===p.hen);if(e)openPair(e.id);else startPair(p.rooster,p.hen)}
-function bPickSet(v){bpick=v;rBrood()}
+function bPair(id){const p=brood.find(x=>x.id===id),e=pairs.find(x=>x.rooster===p.rooster&&x.hen===p.hen);if(e)openPair(e.id);else mkPair(p.rooster,p.hen)}
+function bPairBtn(r,h){const e=pairs.find(x=>x.rooster===r&&x.hen===h);return e?`<button class="btn pri" onclick="openPair('${e.id}')">Open combinatie</button>`:`<button class="btn pri" onclick="mkPair('${r}','${h}')">Combinatie maken</button>`}
+const bTiles=(r,h)=>{const t=b=>b?`<div style="text-align:center">${th2(b,64)}<div class="mut" style="font-size:.72rem">${esc(b.name)}</div></div>`:`<div style="text-align:center">${th2(null,64)}<div class="mut" style="font-size:.72rem">verwijderd</div></div>`;return `<div style="display:flex;align-items:center;gap:12px;margin:8px 0">${t(bird(r))}<span>×</span>${t(bird(h))}</div>`};
+function bPickSet(v){bpick=bpick===v?"":v;rBrood()}
 const recRow=(b,x,btn)=>`<div class="card mr">${bTh(x.p)}<div style="flex:1;min-width:0"><b>${esc(x.p.name)}</b> <span class="mut">· ${sxl(x.p.sex)}${yr(x.p)?" · "+yr(x.p):""}</span><div class="mut" style="font-size:.8rem">Potentie combinatie</div>${barPct(x.P.pct)}${plusTag(x.P.plus)}${x.comp.length?`<div class="mut" style="font-size:.8rem;margin-top:4px">Vult aan:</div>${tags(x.comp,"+ ",GR)}`:""}${x.bu.length?`<div style="color:var(--bad);font-size:.85rem">Ongewenst in combinatie: ${x.bu.map(esc).join(", ")}</div>`:""}<div style="margin-top:8px">${btn}</div></div></div>`;
 function rBrood(){
   const el=$("v-brood");let h="";
   if(bp){
-    const roosters=birds.filter(b=>b.sex==="haan"&&(!b.gone||b.id===bp.rooster)),hens=birds.filter(b=>b.sex==="hen"&&(!b.gone||b.id===bp.hen));
-    const opt=(l,cur)=>`<option value="">Kies…</option>`+l.map(b=>`<option value="${b.id}"${b.id===cur?" selected":""}>${esc(b.name)}</option>`).join("");
-    const rb=bird(bp.rooster),hb=bird(bp.hen),one=rb&&!hb?rb:hb&&!rb?hb:null;
-    const sug=one?reco(one,3):[];
-    h+=`<div class="card"><h2 style="margin-top:0">${bp.isNew?"Nieuw broedplan":"Broedplan wijzigen"}</h2>
-    <label>${sxl("haan")}</label><select onchange="bp.rooster=this.value;rBrood()">${opt(roosters,bp.rooster)}</select>
-    <label>${sxl("hen")}</label><select onchange="bp.hen=this.value;rBrood()">${opt(hens,bp.hen)}</select>
-    ${sug.length?`<div class="mut" style="font-size:.85rem">Aanbevolen ${one.sex==="haan"?"hennen":"hanen"} bij ${esc(one.name)}:</div><div style="margin:6px 0 10px">${sug.map(x=>`<span class="tag" style="cursor:pointer;padding:5px 12px" onclick="bp.${one.sex==="haan"?"hen":"rooster"}='${x.p.id}';rBrood()">${esc(x.p.name)} · ${x.P.pct}%</span>`).join("")}</div>`:""}
-    <label>Datum dat haan en hen bij elkaar komen</label><input type="date" value="${esc(bp.start)}" oninput="bpF('start',this.value)">
+    const inl=!!bp.inl;
+    h+=`<div class="card"><h2 style="margin-top:0">${bp.isNew?"Nieuw broedplan":"Broedplan wijzigen"}</h2>${bTiles(bp.rooster,bp.hen)}
+    <label>Hoe staat het ervoor?</label>${seg([["","Nog te plannen"],["1","Eieren liggen al in"]],inl?"1":"","bpMode")}
+    ${inl?`<label>Eieren ingelegd op</label><input type="date" value="${esc(bp.bstart||"")}" oninput="bpF('bstart',this.value)">
+    <label>Haan en hen bij elkaar sinds (optioneel)</label><input type="date" value="${esc(bp.start||"")}" oninput="bpF('start',this.value)">`:`<label>Datum dat haan en hen bij elkaar komen</label><input type="date" value="${esc(bp.start||"")}" oninput="bpF('start',this.value)">
     <label>Hoeveel eieren wil je broeden?</label><input type="number" min="1" max="60" inputmode="numeric" value="${bp.eggs}" oninput="bpF('eggs',this.value)">
-    <label>Vanaf wanneer zijn de eieren zeker van deze haan?</label><select onchange="bpF('fert',this.value)"><option value="14"${+bp.fert===14?" selected":""}>Na 14 dagen (zeker)</option><option value="10"${+bp.fert===10?" selected":""}>Na 10 dagen (eerder, minder zeker)</option></select>
+    <label>Vanaf wanneer zijn de eieren zeker van deze haan?</label><select onchange="bpF('fert',this.value)"><option value="14"${+bp.fert===14?" selected":""}>Na 14 dagen (zeker)</option><option value="10"${+bp.fert===10?" selected":""}>Na 10 dagen (eerder, minder zeker)</option></select>`}
     <label>Broedduur in dagen</label><input type="number" min="17" max="30" inputmode="numeric" value="${bp.hatch}" oninput="bpF('hatch',this.value)">
-    <label>Eieren al in de broedmachine of onder de hen gelegd op (optioneel)</label><input type="date" value="${esc(bp.bstart||"")}" oninput="bpF('bstart',this.value)">
     <label>Notities</label><textarea rows="2" oninput="bp.notes=this.value">${esc(bp.notes||"")}</textarea>
     <div class="row"><button class="btn pri" onclick="bSave()">Opslaan</button><button class="btn" onclick="bBack()">Annuleren</button></div></div>
     <div class="card"><h2 style="margin-top:0">Planning</h2><div id="bprev"></div></div>`;
     el.innerHTML=h;bPrev();return}
   const pl=bv&&brood.find(x=>x.id===bv);
   if(pl){
-    const s=bStat(pl),q=s.q;q.custom=!!pl.bstart;const t=todayI();
-    const est=diffD(q.sp,t)>=0&&diffD(q.b0,t)<0?`<p style="margin:8px 0">Verwacht ± ${Math.min(q.eggs,Math.floor(diffD(q.sp,t)*2/3))} van ${q.eggs} eieren tot nu toe.</p>`:"";
-    h+=`<button class="btn" onclick="bBack()">‹ Terug</button><div class="card" style="margin-top:10px"><h2 style="margin-top:0">${bNm(pl.rooster)} × ${bNm(pl.hen)}</h2><div><span class="tag" style="margin:0">${s.txt}</span></div>${est}${pl.notes?`<p class="mut" style="white-space:pre-wrap">${esc(pl.notes)}</p>`:""}${bInfo(q)}${bTL(q)}
-    <div class="row" style="margin-top:8px"><button class="btn" onclick="bEdit('${pl.id}')">Wijzigen</button><button class="btn" onclick="bPair('${pl.id}')">Combinatie</button></div>
+    const s=bStat(pl),q=s.q,t=todayI();
+    const est=!q.inl&&diffD(q.sp,t)>=0&&diffD(q.b0,t)<0?`<p style="margin:8px 0">Verwacht ± ${Math.min(q.eggs,Math.floor(diffD(q.sp,t)*2/3))} van ${q.eggs} eieren tot nu toe.</p>`:"";
+    h+=`<button class="btn" onclick="bBack()">‹ Terug</button><div class="card" style="margin-top:10px"><h2 style="margin-top:0">Broedplan</h2>${bTiles(pl.rooster,pl.hen)}<div><span class="tag" style="margin:0">${s.txt}</span></div>${est}${pl.notes?`<p class="mut" style="white-space:pre-wrap">${esc(pl.notes)}</p>`:""}${bInfo(q)}${bTL(q)}
+    <div class="row" style="margin-top:8px"><button class="btn" onclick="bEdit('${pl.id}')">Wijzigen</button><button class="btn" onclick="bPair('${pl.id}')">Naar combinatie</button></div>
     <div class="row"><button class="btn" onclick="bDone('${pl.id}',${!pl.done})">${pl.done?"Heropenen":"Markeer als afgerond"}</button><button class="btn del" onclick="bDel('${pl.id}')">Verwijderen</button></div></div>`;
+    el.innerHTML=h;return}
+  if(bch){
+    h+=`<button class="btn" onclick="bCh(false)">‹ Terug</button><h2>Kies een combinatie</h2>`+(pairs.length?pairs.map(p=>`<div class="card" style="cursor:pointer" onclick="bNew('${p.rooster}','${p.hen}')"><b>${esc(p.name)}</b>${bTiles(p.rooster,p.hen)}</div>`).join(""):`<p class="mut">Er zijn nog geen combinaties. Maak eerst een combinatie. Hieronder bij “Wie past erbij?” kun je er een laten voorstellen.</p>`);
     el.innerHTML=h;return}
   const act=[],fin=[];brood.forEach(p=>{const s=bStat(p);(s.ph===4?fin:act).push({p,s})});
   act.sort((a,b)=>{const x=bNext(a.s.q),y=bNext(b.s.q);return (x?x.d:"9")<(y?y.d:"9")?-1:1});
   const ag=[];act.forEach(({p,s})=>s.q.ev.forEach(e=>{if(e.d>=todayI())ag.push({e,p})}));ag.sort((a,b)=>a.e.d<b.e.d?-1:a.e.d>b.e.d?1:0);
-  h+=`<div class="card"><h2 style="margin-top:0">Komende stappen</h2>${ag.length?ag.slice(0,8).map(({e,p})=>`<div style="padding:6px 0;border-top:1px solid var(--bd);cursor:pointer" onclick="bOpen('${p.id}')"><b>${fmtL(e.d)}</b> <span class="mut">· ${relD(e.d)} · ${bNm(p.rooster)} × ${bNm(p.hen)}</span><div>${e.t}</div></div>`).join(""):'<p class="mut" style="margin:0">Nog geen broedplannen. Maak er een met de knop hieronder.</p>'}<button class="btn pri" style="margin-top:10px;width:100%" onclick="bNew()">+ Nieuw broedplan</button></div>`;
-  if(act.length)h+=`<h2>Lopende plannen (${act.length})</h2>`+act.map(({p,s})=>{const n=bNext(s.q);return `<div class="card" style="cursor:pointer" onclick="bOpen('${p.id}')"><b>${bNm(p.rooster)} × ${bNm(p.hen)}</b><div><span class="tag" style="margin:4px 0 0">${s.txt}</span></div>${n?`<div class="mut" style="margin-top:6px">Volgende: ${fmtL(n.d)} (${relD(n.d)})<br>${n.t}</div>`:""}</div>`}).join("");
+  const nm=p=>`${bNm(p.rooster)} × ${bNm(p.hen)}`;
+  h+=`<div class="card"><h2 style="margin-top:0">Komende stappen</h2>${ag.length?ag.slice(0,8).map(({e,p})=>`<div style="padding:6px 0;border-top:1px solid var(--bd);cursor:pointer" onclick="bOpen('${p.id}')"><b>${fmtL(e.d)}</b> <span class="mut">· ${relD(e.d)} · ${nm(p)}</span><div>${e.t}</div></div>`).join(""):'<p class="mut" style="margin:0">Nog geen broedplannen.</p>'}<button class="btn pri" style="margin-top:10px;width:100%" onclick="bCh(true)">+ Nieuw broedplan</button><p class="mut" style="font-size:.8rem;margin:8px 0 0">Een broedplan hoort bij een combinatie. Je kunt het ook starten vanuit de combinatie zelf.</p></div>`;
+  if(act.length)h+=`<h2>Lopende plannen (${act.length})</h2>`+act.map(({p,s})=>{const n=bNext(s.q);return `<div class="card" style="cursor:pointer" onclick="bOpen('${p.id}')">${bTiles(p.rooster,p.hen)}<span class="tag" style="margin:0">${s.txt}</span>${n?`<div class="mut" style="margin-top:6px">Volgende: ${fmtL(n.d)} (${relD(n.d)})<br>${n.t}</div>`:""}</div>`}).join("");
   const pool=birds.filter(b=>!b.gone).sort(byName),pb=bird(bpick);
-  h+=`<div class="card"><h2 style="margin-top:0">Wie past erbij?</h2><p class="mut" style="margin-top:0">Kies een haan of hen. Je ziet de dieren van het andere geslacht die de combinatie het dichtst bij je fokdoel brengen.</p><select onchange="bPickSet(this.value)"><option value="">Kies een dier…</option>${pool.map(b=>`<option value="${b.id}"${b.id===bpick?" selected":""}>${esc(b.name)} (${b.sex==="haan"?"haan":"hen"})</option>`).join("")}</select></div>`;
-  if(pb){const l=reco(pb,5);h+=`<h2>Beste ${pb.sex==="haan"?"hennen":"hanen"} bij ${esc(pb.name)}</h2>`+(l.map(x=>recRow(pb,x,`<button class="btn pri" onclick="bNew('${pb.sex==="haan"?pb.id:x.p.id}','${pb.sex==="haan"?x.p.id:pb.id}')">Plan broedperiode</button>`)).join("")||`<p class="mut">Er zijn nog geen ${pb.sex==="haan"?"hennen":"hanen"} toegevoegd.</p>`)}
-  if(fin.length)h+=`<h2>Afgerond (${fin.length})</h2>`+fin.map(({p,s})=>`<div class="card" style="cursor:pointer" onclick="bOpen('${p.id}')"><b>${bNm(p.rooster)} × ${bNm(p.hen)}</b> <span class="mut">· uitgekomen ${fmtL(s.q.hatch)}</span></div>`).join("");
+  h+=`<div class="card"><h2 style="margin-top:0">Wie past erbij?</h2><p class="mut" style="margin-top:0">Tik een haan of hen aan. Je ziet de dieren van het andere geslacht die de combinatie het dichtst bij je fokdoel brengen.</p><div class="pickrow" id="bpk">${pool.map(b=>`<div class="pick${b.id===bpick?" on":""}" onclick="bPickSet('${b.id}')">${b.photo?`<img src="${b.photo}" alt="${esc(b.name)}">`:`<div class="ph">${sxi(b.sex)}</div>`}<span>${esc(b.name)}</span></div>`).join("")||'<span class="mut">Nog geen dieren.</span>'}</div></div>`;
+  if(pb){const l=reco(pb,5);h+=`<h2>Beste ${pb.sex==="haan"?"hennen":"hanen"} bij ${esc(pb.name)}</h2>`+(l.map(x=>recRow(pb,x,bPairBtn(pb.sex==="haan"?pb.id:x.p.id,pb.sex==="haan"?x.p.id:pb.id))).join("")||`<p class="mut">Er zijn nog geen ${pb.sex==="haan"?"hennen":"hanen"} toegevoegd.</p>`)}
+  if(fin.length)h+=`<h2>Afgerond (${fin.length})</h2>`+fin.map(({p,s})=>`<div class="card" style="cursor:pointer" onclick="bOpen('${p.id}')"><b>${nm(p)}</b> <span class="mut">· uitgekomen ${fmtL(s.q.hatch)}</span></div>`).join("");
   el.innerHTML=h}
 /* ---------- Start ---------- */
 (async()=>{try{db=await open();await load();rBirds();bkBar();try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}catch(e){$("v-birds").innerHTML='<div class="card">Opslag in de browser is niet beschikbaar (privévenster?). Open de pagina in een gewoon venster.</div>'}})();
