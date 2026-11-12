@@ -161,18 +161,18 @@ function editPair(id){pvp=null;pd=JSON.parse(JSON.stringify(pairs.find(p=>p.id==
 function rPairForm(){if(pd.custom===undefined)pd.custom=!!(pd.name&&pd.name!==pAuto());
   const opt=sex=>`<option value="">— kies —</option>`+birds.filter(b=>b.sex===sex).map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("");
   $("v-pairs").innerHTML=`<div class="card"><h2 style="margin-top:0">${pairs.find(p=>p.id===pd.id)?"Combinatie bewerken":"Nieuwe combinatie"}</h2>
-  <div id="pt"></div><div id="ps"></div><label>${sxl("haan")}</label><div class="pickrow" id="pkr"></div><label>${sxl("hen")}</label><div class="pickrow" id="pkh"></div><label class="chk" style="margin-top:8px"><input type="checkbox" ${showGone?"checked":""} onchange="setGone(this.checked)">Toon ook dieren die niet meer aanwezig zijn</label>
+  <label>Jaar</label><input type="number" id="pyear" min="1980" max="2100" value="${pairYear(pd)}"><div id="pt"></div><div id="ps"></div><label>${sxl("haan")}</label><div class="pickrow" id="pkr"></div><label>${sxl("hen")}</label><div class="pickrow" id="pkh"></div><label class="chk" style="margin-top:8px"><input type="checkbox" ${showGone?"checked":""} onchange="setGone(this.checked)">Toon ook dieren die niet meer aanwezig zijn</label>
   ${!birds.some(b=>b.sex==="haan")||!birds.some(b=>b.sex==="hen")?'<p class="mut">Voeg eerst minstens één haan en één hen toe bij “Kippen”.</p>':""}
   <div id="pv"></div>
   <h2>Nakomelingen</h2><div>${kidTiles(pd.id,false)}</div><p><button class="btn" onclick="addKid()">+ Nakomeling toevoegen</button></p>
-  <label>Jaar</label><input type="number" id="pyear" min="1980" max="2100" value="${pairYear(pd)}"><label>Notities</label><textarea id="po" rows="2">${esc(pd.notes)}</textarea>
-  <div class="row"><button class="btn pri" onclick="savePair()">Opslaan</button><button class="btn" onclick="pd=null;rPairs()">Annuleren</button></div></div>`;
+  <label>Notities</label><textarea id="po" rows="2">${esc(pd.notes)}</textarea>
+  <div class="row"><button class="btn pri" onclick="savePair()">Opslaan</button><button class="btn" onclick="pd=null;pairNext=false;rPairs()">Annuleren</button></div></div>`;
   rPick();rPT();rOver()}
 async function savePair(){
   if(!pd.rooster||!pd.hen){alert("Kies zowel een haan als een hen.");return}
   const r=bird(pd.rooster),h=bird(pd.hen);
   pd.name=pName();pd.notes=$("po").value;pd.year=+$("pyear").value||pairYear(pd);pd.updated=Date.now();
-  await put("pairs",pd);pvp=pd.id;pd=null;await load();rPairs()}
+  await put("pairs",pd);const nx=pairNext,r0=pd.rooster,h0=pd.hen;pairNext=false;pvp=pd.id;pd=null;await load();if(nx){bNew(r0,h0);return}rPairs()}
 
 /* ---------- Fokdoel ---------- */
 const DEF=["Opgerichte houding","Hoge staartdracht","Typische Seramahouding","Lange staart","Veel bijsikkels","Gele poten","Witte oren","Rustig karakter","Regelmatige kam"];
@@ -256,7 +256,7 @@ function pickB(w,id){pd[w]=pd[w]===id?"":id;rPick();rPT();rOver()}
 /* ---------- Detailweergave en navigatie ---------- */
 const th2=(b,s)=>`<div class="t" style="width:${s}px;height:${s}px">${b&&b.photo?`<img src="${b.photo}" alt="">`:(b?(sxi(b.sex)):"?")}</div>`;
 const kidTiles=(id,click)=>birds.filter(k=>k.pair===id).map(k=>`<div class="kid"${click?` onclick="openBird('${k.id}',{t:'pair',id:'${id}'})"`:""}>${th2(k,64)}<span>${esc(k.name)}</span></div>`).join("")||'<span class="mut">Nog geen nakomelingen.</span>';
-function tab(v){if(v==="brood"){bv=null;bp=null;bch=false}if(v==="birds")pv=null;if(v==="pairs")pvp=null;show(v)}
+function tab(v){pairNext=false;if(v==="brood"){bv=null;bp=null;bch=false}if(v==="birds")pv=null;if(v==="pairs")pvp=null;show(v)}
 function openBird(id,from){pv=id;bk=from||null;bd=null;show("birds")}
 function openPair(id,from){pvp=id;pbk=from||null;pd=null;show("pairs")}
 function pdOpen(id){if(pd)return;openBird(id,{t:"pair",id:pvp})}
@@ -647,7 +647,7 @@ function bkBar(){const el=$("bkbar");if(!el)return;const empty=!birds.length&&!p
   if(old&&Date.now()>bkd.snooze){const d=bkd.last?Math.floor((Date.now()-bkd.last)/DAY):0;el.innerHTML=`<div class="card" style="margin:0 0 10px"><b>Tijd voor een back-up</b><p class="mut" style="margin:4px 0 8px">${bkd.last?`De laatste back-up is ${d} dagen oud.`:"Je hebt nog geen back-up gemaakt."} Sla hem op in Drive of Bestanden, of stuur hem naar jezelf. Dan raak je niets kwijt.</p><div class="row"><button class="btn pri" onclick="exportFile()">Nu opslaan</button><button class="btn" onclick="bkSnooze()">Later</button></div></div>`}
   else el.innerHTML=""}
 /* ---------- Broedkalender ---------- */
-let brood=[],bp=null,bv=null,bch=false,bmo="",bsel="",bpop=false,bchM="kies",bnp={r:"",h:""};
+let pairNext=false,brood=[],bp=null,bv=null,bch=false,bmo="",bsel="",bpop=false,bchM="kies",bnp={r:"",h:""};
 const saveBrood=()=>put("meta",{id:"brood",plans:brood});
 const isoD=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const todayI=()=>isoD(new Date());
@@ -696,10 +696,9 @@ function bpMode(v){bp.mode=v;const T=todayI();if(v==="al"&&!bp.bstart)bp.bstart=
 async function mkPair(r,h){const p={id:uid(),name:(bird(r)?bird(r).name:"")+" × "+(bird(h)?bird(h).name:""),rooster:r,hen:h,notes:"",updated:Date.now(),year:new Date().getFullYear()};await put("pairs",p);await load();openPair(p.id)}
 function bCh(v){bch=v;bv=null;bp=null;bnp={r:"",h:""};rBrood()}
 function bchSet(v){bchM=v;rBrood()}
-async function bMakeNew(){if(!bnp.r||!bnp.h){alert("Kies een haan en een hen.");return}
-  let p=pairs.find(x=>x.rooster===bnp.r&&x.hen===bnp.h);
-  if(!p){p={id:uid(),name:bird(bnp.r).name+" × "+bird(bnp.h).name,rooster:bnp.r,hen:bnp.h,notes:"",updated:Date.now(),year:new Date().getFullYear()};await put("pairs",p);await load()}
-  bNew(bnp.r,bnp.h)}
+function bMakeNew(){if(!bnp.r||!bnp.h){alert("Kies een haan en een hen.");return}
+  const p=pairs.find(x=>x.rooster===bnp.r&&x.hen===bnp.h);if(p){bNew(bnp.r,bnp.h);return}
+  pairNext=true;bch=false;startPair(bnp.r,bnp.h)}
 function bEdit(id){bp=JSON.parse(JSON.stringify(brood.find(x=>x.id===id)));bp.mode=bModeOf(bp);show("brood")}
 function bOpen(id){bv=id;bp=null;bch=false;bpop=false;show("brood")}
 function bBack(){bv=null;bp=null;bch=false;show("brood")}
@@ -736,7 +735,7 @@ function bCal(act){
     cells+=`<div class="cd${o?" o":""}${d===bsel?" sel":""}" onclick="bSelD('${d}')"><span class="dn${d===T?" td":""}">${+d.slice(8)}</span>${chips}<div class="bars">${bars}</div></div>`}
   const day=(evs[bsel]||[]);
   const dl=day.length?day.map(({e,p})=>`<div style="padding:6px 0;border-top:1px solid var(--bd);cursor:pointer" onclick="bOpen('${p.id}')"><i class="ek ek-${e.k}">${BK[e.k]}</i> <span class="mut">${bNm(p.rooster)} × ${bNm(p.hen)}</span><div>${e.t}</div></div>`).join(""):'<p class="mut" style="margin:6px 0 0">Niets gepland op deze dag.</p>';
-  return `<div class="card"><div class="row" style="align-items:center;margin:0 0 8px"><button class="btn" onclick="bMo(-1)" aria-label="Vorige maand">‹</button><b style="flex:1;text-align:center;text-transform:capitalize;white-space:nowrap">${new Date(y,m-1,1).toLocaleDateString("nl-NL",{month:"long",year:"numeric"})}</b><button class="btn" onclick="bMo(1)" aria-label="Volgende maand">›</button></div>
+  return `<div class="card" id="calw"><div class="row" style="align-items:center;margin:0 0 8px"><button class="btn" onclick="bMo(-1)" aria-label="Vorige maand">‹</button><b style="flex:1;text-align:center;text-transform:capitalize;white-space:nowrap">${new Date(y,m-1,1).toLocaleDateString("nl-NL",{month:"long",year:"numeric"})}</b><button class="btn" onclick="bMo(1)" aria-label="Volgende maand">›</button></div>
   <div class="cal">${["zo","ma","di","wo","do","vr","za"].map(x=>`<div class="cwd">${x}</div>`).join("")}${cells}</div>
   <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">${["samen","sparen","inleg","schouw","keren","uit"].map(k=>`<i class="ek ek-${k}">${BK[k]}</i>`).join("")}<button class="btn" style="margin-left:auto;padding:2px 10px" onclick="bToday()">Vandaag</button></div></div>${bpop?`<div class="ovl" onclick="bClose()"><div class="card pop" onclick="event.stopPropagation()"><div class="row" style="align-items:center;margin:0 0 4px"><b style="flex:1">${fmtL(bsel)} <span class="mut" style="font-weight:400">· ${relD(bsel)}</span></b><button class="btn" style="padding:2px 12px;flex:none;width:auto" onclick="bClose()" aria-label="Sluiten">✕</button></div>${dl}</div></div>`:""}`}
 function rBrood(){
@@ -777,6 +776,8 @@ function rBrood(){
   else h+='<p class="mut">Nog geen broedplannen. Een broedplan hoort bij een combinatie.</p>';
   if(fin.length)h+=`<h2>Afgerond (${fin.length})</h2>`+fin.map(({p,s})=>`<div class="card" style="cursor:pointer" onclick="bOpen('${p.id}')"><b>${nm(p)}</b> <span class="mut">· uitgekomen ${fmtL(s.q.hatch)}</span></div>`).join("");
   el.innerHTML=h}
+{let sx=0,sy=0,on=false;document.addEventListener("touchstart",e=>{const t=e.target.closest&&e.target.closest("#calw");on=!!t;if(on){sx=e.touches[0].clientX;sy=e.touches[0].clientY}},{passive:true});
+document.addEventListener("touchend",e=>{if(!on)return;on=false;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)>50&&Math.abs(dx)>1.5*Math.abs(dy))bMo(dx<0?1:-1)},{passive:true})}
 /* ---------- Start ---------- */
 (async()=>{try{db=await open();await load();rBirds();bkBar();try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}catch(e){$("v-birds").innerHTML='<div class="card">Opslag in de browser is niet beschikbaar (privévenster?). Open de pagina in een gewoon venster.</div>'}})();
 </script>
