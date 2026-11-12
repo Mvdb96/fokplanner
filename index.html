@@ -45,7 +45,7 @@ label{font-size:.85rem;color:var(--mut)}
 .cc{display:flex;flex-direction:column;gap:6px;min-width:0}
 .cs{position:relative;display:flex;flex-direction:column}
 .cs img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:10px;cursor:zoom-in}
-.tl{margin:10px 0 0 4px}.tli{display:flex;gap:12px;padding-bottom:14px;position:relative}.tli i{flex:none;width:12px;height:12px;border-radius:50%;background:var(--ac);margin-top:5px;position:relative;z-index:1}.tli:not(:last-child)::before{content:"";position:absolute;left:5px;top:17px;bottom:-5px;width:2px;background:var(--bd)}.tli.past{opacity:.5}.tli.past i{background:var(--bd)}.tli.cur i{outline:3px solid var(--ac);outline-offset:2px}.tli.cur>div{font-weight:600}.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}.cwd{text-align:center;font-size:.72rem;color:var(--mut);padding-bottom:2px}.cd{min-height:66px;border-radius:8px;padding:2px 1px 8px;position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;overflow:hidden;border:1px solid transparent}.cd.o{opacity:.45}.cd.sel{background:rgba(181,84,28,.12);border-color:var(--bd)}.dn{font-size:.8rem;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%}.dn.td{border:2px solid var(--ac);line-height:18px;font-weight:700}.ek{font-style:normal;font-size:.56rem;line-height:1;padding:2px 3px;border-radius:5px;border:1px solid currentColor;white-space:nowrap;display:inline-block;font-weight:600;max-width:96%;overflow:hidden}.ek-samen{color:var(--hen)}.ek-vrucht{color:var(--gry)}.ek-sparen{color:var(--org)}.ek-inleg{color:var(--ac)}.ek-schouw{color:#3a86c8}.ek-keren{color:#c0568a}.ek-uit{color:var(--both)}.ek.mo{color:var(--mut)}.bars{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:1px}.pbr{display:block;height:4px;min-height:4px;text-decoration:none}.b-w{background:var(--gry);opacity:.35}.b-s{background:var(--org);opacity:.7}.b-b{background:var(--both);opacity:.8}.seg.eq button{flex:1 1 0;min-width:0}
+.tl{margin:10px 0 0 4px}.tli{display:flex;gap:12px;padding-bottom:14px;position:relative}.tli i{flex:none;width:12px;height:12px;border-radius:50%;background:var(--ac);margin-top:5px;position:relative;z-index:1}.tli:not(:last-child)::before{content:"";position:absolute;left:5px;top:17px;bottom:-5px;width:2px;background:var(--bd)}.tli.past{opacity:.5}.tli.past i{background:var(--bd)}.tli.cur i{outline:3px solid var(--ac);outline-offset:2px}.tli.cur>div{font-weight:600}.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}.cwd{text-align:center;font-size:.72rem;color:var(--mut);padding-bottom:2px}.cd{min-height:66px;border-radius:8px;padding:2px 1px 8px;position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;overflow:hidden;border:1px solid transparent}.cd.o{opacity:.45}.cd.sel{background:rgba(181,84,28,.12);border-color:var(--bd)}.dn{font-size:.8rem;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%}.dn.td{border:2px solid var(--ac);line-height:18px;font-weight:700}.ek{font-style:normal;font-size:.56rem;line-height:1;padding:2px 3px;border-radius:5px;border:1px solid currentColor;white-space:nowrap;display:inline-block;font-weight:600;max-width:96%;overflow:hidden}.ek-samen{color:var(--hen)}.ek-vrucht{color:var(--gry)}.ek-sparen{color:var(--org)}.ek-inleg{color:var(--ac)}.ek-schouw{color:#3a86c8}.ek-keren{color:#c0568a}.ek-uit{color:var(--both)}.ek.mo{color:var(--mut)}.bars{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:1px}.pbr{display:block;height:4px;min-height:4px;text-decoration:none}.b-w{background:var(--gry);opacity:.35}.b-s{background:var(--org);opacity:.7}.b-b{background:var(--both);opacity:.8}.ovl{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px}.pop{width:100%;max-width:340px;max-height:70vh;overflow:auto;margin:0;box-shadow:0 8px 30px rgba(0,0,0,.35)}.ek{letter-spacing:-.2px;padding:2px 2px!important}.seg.eq button{flex:1 1 0;min-width:0}
 .pb{display:inline-flex;width:2em;height:1.5em;align-items:center;justify-content:center;vertical-align:-.4em}
 .pb .hn.sm{height:auto!important;width:auto!important;max-height:100%!important;max-width:100%!important;vertical-align:baseline!important}.cl{white-space:nowrap;display:flex;align-items:center;gap:6px;order:-1;color:var(--tx);font-weight:600;font-size:.95rem;padding:0 2px 4px}.cx{position:absolute;right:8px;bottom:8px;padding:2px 9px}.fl{cursor:pointer;color:var(--tx);font-size:1rem;text-align:center}
 .tag{display:inline-flex;align-items:center;gap:3px;padding:2px 10px;margin:2px 3px 2px 0;border-radius:14px;border:1px solid var(--bd);font-size:.82rem;line-height:1.35;max-width:100%}
@@ -644,10 +644,10 @@ const bkLabel=()=>bkd.last?`Laatste back-up: ${new Date(bkd.last).toLocaleDateSt
 function bkBar(){const el=$("bkbar");if(!el)return;const empty=!birds.length&&!pairs.length;
   if(empty){el.innerHTML=`<div class="card" style="margin:0 0 10px"><b>Nieuwe of lege app?</b><p class="mut" style="margin:4px 0 8px">Heb je eerder een back-up opgeslagen? Kies het bestand om al je dieren terug te zetten.</p><label class="btn pri fl" style="display:block">Back-up terugzetten<input type="file" accept=".json,application/json,text/plain" hidden onchange="importFile(this)"></label></div>`;return}
   const old=!bkd.last||Date.now()-bkd.last>7*DAY;
-  if(old&&Date.now()>bkd.snooze){const d=bkd.last?Math.floor((Date.now()-bkd.last)/DAY):0;el.innerHTML=`<div class="card" style="margin:0 0 10px"><b>Tijd voor een back-up</b><p class="mut" style="margin:4px 0 8px">${bkd.last?`De laatste back-up is ${d} dagen oud.`:"Je hebt nog geen back-up gemaakt."} Sla hem op in Drive, Bestanden of stuur hem naar jezelf, dan raak je niets kwijt.</p><div class="row"><button class="btn pri" onclick="exportFile()">Nu opslaan</button><button class="btn" onclick="bkSnooze()">Later</button></div></div>`}
+  if(old&&Date.now()>bkd.snooze){const d=bkd.last?Math.floor((Date.now()-bkd.last)/DAY):0;el.innerHTML=`<div class="card" style="margin:0 0 10px"><b>Tijd voor een back-up</b><p class="mut" style="margin:4px 0 8px">${bkd.last?`De laatste back-up is ${d} dagen oud.`:"Je hebt nog geen back-up gemaakt."} Sla hem op in Drive of Bestanden, of stuur hem naar jezelf. Dan raak je niets kwijt.</p><div class="row"><button class="btn pri" onclick="exportFile()">Nu opslaan</button><button class="btn" onclick="bkSnooze()">Later</button></div></div>`}
   else el.innerHTML=""}
 /* ---------- Broedkalender ---------- */
-let brood=[],bp=null,bv=null,bch=false,bmo="",bsel="";
+let brood=[],bp=null,bv=null,bch=false,bmo="",bsel="",bpop=false,bchM="kies",bnp={r:"",h:""};
 const saveBrood=()=>put("meta",{id:"brood",plans:brood});
 const isoD=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const todayI=()=>isoD(new Date());
@@ -657,7 +657,7 @@ const fmtL=s=>new Date(s+"T12:00:00").toLocaleDateString("nl-NL",{weekday:"short
 const relD=s=>{const n=diffD(todayI(),s);return n===0?"vandaag":n===1?"morgen":n===-1?"gisteren":n>0?"over "+n+" dagen":(-n)+" dagen geleden"};
 const bNm=id=>{const b=bird(id);return b?esc(b.name):"(verwijderd)"};
 const bTh=b=>b.photo?`<img src="${b.photo}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex:none">`:`<div class="ph" style="width:56px;height:56px;flex:none">${sxi(b.sex)}</div>`;
-const BK={samen:"Samen",vrucht:"Bevr.?",sparen:"Sparen",inleg:"Inleg",schouw:"Schouw",keren:"Rust",uit:"Uit"};
+const BK={samen:"Koppelen",vrucht:"Bevr.?",sparen:"Sparen",inleg:"Inleg",schouw:"Schouw",keren:"Rust",uit:"Uitkomst"};
 const bModeOf=p=>p.mode||(p.bstart?"al":"plan");
 function bPlan(p){
   const fert=+p.fert||14,eggs=Math.max(1,+p.eggs||12),hd=+p.hatch||21,days=Math.ceil(eggs*1.5),mode=bModeOf(p),T=todayI();
@@ -666,15 +666,15 @@ function bPlan(p){
   else if(mode==="inleg"||mode==="uit"){const t=p.tdate||addD(T,fert+days+(mode==="uit"?hd:0));b0=mode==="uit"?addD(t,-hd):t;sp=addD(b0,-days);start=addD(sp,-fert)}
   else{start=start||T;sp=addD(start,fert);b0=addD(sp,days)}
   const hatch=addD(b0,hd),inl=mode==="al",ev=[];
-  if(start)ev.push({d:start,k:"samen",t:inl?"Haan en hen bij elkaar gezet":"Haan en hen bij elkaar zetten"});
-  if(!inl){if(fert>10)ev.push({d:addD(start,10),k:"vrucht",t:"Eerste eieren kunnen nu al van de nieuwe haan zijn (nog niet zeker)"});
-    ev.push({d:sp,k:"sparen",t:"Eieren zijn zeker bevrucht door deze haan. Begin met eieren sparen"})}
-  else if(sp&&sp<=b0)ev.push({d:sp,k:"vrucht",t:"Vanaf deze datum gelegde eieren zijn zeker van deze haan"});
-  ev.push({d:b0,k:"inleg",t:inl?"Eieren in de broedmachine of onder de hen gelegd":"Genoeg eieren (± "+eggs+"). Leg ze in de broedmachine of onder de hen"});
-  ev.push({d:addD(b0,7),k:"schouw",t:"Eerste keer schouwen (lichten). Onbevruchte eieren eruit"});
-  ev.push({d:addD(b0,14),k:"schouw",t:"Tweede keer schouwen"});
-  ev.push({d:addD(b0,hd-3),k:"keren",t:"Stop met keren, laat het rustig en zet de luchtvochtigheid hoger"});
-  ev.push({d:hatch,k:"uit",t:"Verwachte uitkomst"});
+  if(start)ev.push({d:start,k:"samen",t:inl?"Haan en hen gekoppeld.":"Haan en hen koppelen."});
+  if(!inl){if(fert>10)ev.push({d:addD(start,10),k:"vrucht",t:"Eerste eieren kunnen nu al van de nieuwe haan zijn (nog niet zeker)."});
+    ev.push({d:sp,k:"sparen",t:"Eieren zijn zeker bevrucht door deze haan. Begin met eieren sparen."})}
+  else if(sp&&sp<=b0)ev.push({d:sp,k:"vrucht",t:"Vanaf deze datum gelegde eieren zijn zeker van deze haan."});
+  ev.push({d:b0,k:"inleg",t:inl?"Eieren in de broedmachine of onder de hen gelegd.":"Genoeg eieren (± "+eggs+"). Leg ze in de broedmachine of onder de hen."});
+  ev.push({d:addD(b0,7),k:"schouw",t:"Eerste keer schouwen (lichten). Onbevruchte eieren eruit."});
+  ev.push({d:addD(b0,14),k:"schouw",t:"Tweede keer schouwen."});
+  ev.push({d:addD(b0,hd-3),k:"keren",t:"Stop met keren, houd het rustig en zet de luchtvochtigheid hoger."});
+  ev.push({d:hatch,k:"uit",t:"Verwachte uitkomst."});
   ev.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
   const late=(mode==="inleg"||mode==="uit")&&start<T,earliest=addD(T,fert+days);
   return{fert,eggs,hd,days,sp,b0,hatch,ev,inl,mode,start,late,earliest,early:inl&&!!sp&&b0<sp}}
@@ -684,19 +684,24 @@ function bStat(p){
   if(n(q.hatch)>=0)return{txt:"Kuikens verwacht",ph:3,q};
   if(n(q.b0)>=0)return{txt:"Broeden, dag "+(n(q.b0)+1)+" van "+q.hd,ph:3,q};
   if(!q.inl&&n(q.sp)>=0)return{txt:"Eieren sparen",ph:2,q};
-  if(q.start&&n(q.start)>=0)return{txt:"Samen, wachten op bevruchting (dag "+(n(q.start)+1)+")",ph:1,q};
+  if(q.start&&n(q.start)>=0)return{txt:"Gekoppeld, wachten op bevruchting (dag "+(n(q.start)+1)+")",ph:1,q};
   return{txt:"Gepland",ph:0,q}}
 const bNext=q=>q.ev.find(e=>e.d>=todayI());
 function reco(b,n){const opp=b.sex==="haan"?"hen":"haan";
   return birds.filter(x=>x.sex===opp&&!x.gone).map(p=>{const r=b.sex==="haan"?b:p,h=b.sex==="haan"?p:b;return{p,P:potency(r,h),comp:goal.filter(g=>val(p,g)>val(b,g)),bu:bad.filter(g=>bval(b,g)||bval(p,g))}}).sort((a,c)=>c.P.pct-a.P.pct||c.P.plus-a.P.plus||byName(a.p,c.p)).slice(0,n||5)}
 const bTL=q=>{const nx=bNext(q);return `<div class="tl">${q.ev.map(e=>`<div class="tli${e.d<todayI()?" past":""}${e===nx?" cur":""}"><i></i><div><b>${fmtL(e.d)}</b> <span class="mut">· ${relD(e.d)}</span><div>${e.t}</div></div></div>`).join("")}</div>`};
-const bInfo=q=>q.inl?(q.early?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die vóór ${fmtL(q.sp)} zijn gelegd kunnen nog van een andere haan zijn.</p>`:""):`<p class="mut" style="margin:8px 0">Eieren sparen duurt ongeveer ${q.days} dagen (rekening houdend met 2 eieren per 3 dagen).</p>${q.late?`<p style="color:var(--bad);margin:8px 0">Dat is te kort dag: haan en hen hadden al op ${fmtL(q.start)} bij elkaar moeten komen. Zet je ze vandaag bij elkaar, dan kun je op zijn vroegst inleggen op ${fmtL(q.earliest)}.</p>`:""}${q.days>10?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die langer dan ± 10 dagen liggen komen minder goed uit. Bewaar ze koel (12 tot 16 °C), de punt naar beneden, en draai ze elke dag. Overweeg anders in twee rondes te broeden.</p>`:""}`;
+const bInfo=q=>q.inl?(q.early?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die vóór ${fmtL(q.sp)} zijn gelegd kunnen nog van een andere haan zijn.</p>`:""):`<p class="mut" style="margin:8px 0">Eieren sparen duurt ongeveer ${q.days} dagen (rekening houdend met 2 eieren per 3 dagen).</p>${q.late?`<p style="color:var(--bad);margin:8px 0">Dat is te kort dag: haan en hen hadden al op ${fmtL(q.start)} gekoppeld moeten zijn. Koppel je ze vandaag, dan kun je op zijn vroegst inleggen op ${fmtL(q.earliest)}.</p>`:""}${q.days>10?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die langer dan ± 10 dagen liggen komen minder goed uit. Bewaar ze koel (12 tot 16 °C), de punt naar beneden, en draai ze elke dag. Overweeg anders in twee rondes te broeden.</p>`:""}`;
 function bNew(r,h){bp={id:uid(),rooster:r,hen:h,mode:"plan",start:todayI(),tdate:"",eggs:12,fert:14,hatch:21,bstart:"",notes:"",done:false,isNew:true};bv=null;bch=false;show("brood")}
 function bpMode(v){bp.mode=v;const T=todayI();if(v==="al"&&!bp.bstart)bp.bstart=T;if(v!=="al")bp.bstart="";if(v==="plan"&&!bp.start)bp.start=T;if(v==="inleg"||v==="uit")bp.tdate=addD(T,(+bp.fert||14)+Math.ceil((+bp.eggs||12)*1.5)+(v==="uit"?(+bp.hatch||21):0));rBrood()}
 async function mkPair(r,h){const p={id:uid(),name:(bird(r)?bird(r).name:"")+" × "+(bird(h)?bird(h).name:""),rooster:r,hen:h,notes:"",updated:Date.now(),year:new Date().getFullYear()};await put("pairs",p);await load();openPair(p.id)}
-function bCh(v){bch=v;bv=null;bp=null;rBrood()}
+function bCh(v){bch=v;bv=null;bp=null;bnp={r:"",h:""};rBrood()}
+function bchSet(v){bchM=v;rBrood()}
+async function bMakeNew(){if(!bnp.r||!bnp.h){alert("Kies een haan en een hen.");return}
+  let p=pairs.find(x=>x.rooster===bnp.r&&x.hen===bnp.h);
+  if(!p){p={id:uid(),name:bird(bnp.r).name+" × "+bird(bnp.h).name,rooster:bnp.r,hen:bnp.h,notes:"",updated:Date.now(),year:new Date().getFullYear()};await put("pairs",p);await load()}
+  bNew(bnp.r,bnp.h)}
 function bEdit(id){bp=JSON.parse(JSON.stringify(brood.find(x=>x.id===id)));bp.mode=bModeOf(bp);show("brood")}
-function bOpen(id){bv=id;bp=null;bch=false;show("brood")}
+function bOpen(id){bv=id;bp=null;bch=false;bpop=false;show("brood")}
 function bBack(){bv=null;bp=null;bch=false;show("brood")}
 function bpF(k,v){bp[k]=v;bPrev()}
 function bPrev(){const el=$("bprev");if(!el||!bp)return;if(bp.mode==="al"&&!bp.bstart||bp.mode==="plan"&&!bp.start||(bp.mode==="inleg"||bp.mode==="uit")&&!bp.tdate){el.innerHTML='<p class="mut">Vul een datum in.</p>';return}const q=bPlan(bp);el.innerHTML=bInfo(q)+bTL(q)}
@@ -712,11 +717,12 @@ function bPairBtn(r,h){const e=pairs.find(x=>x.rooster===r&&x.hen===h);return e?
 const bTiles=(r,h)=>{const t=b=>b?`<div style="text-align:center">${th2(b,64)}<div class="mut" style="font-size:.72rem">${esc(b.name)}</div></div>`:`<div style="text-align:center">${th2(null,64)}<div class="mut" style="font-size:.72rem">verwijderd</div></div>`;return `<div style="display:flex;align-items:center;gap:12px;margin:8px 0">${t(bird(r))}<span>×</span>${t(bird(h))}</div>`};
 const recRow=(b,x,btn)=>`<div class="card mr">${bTh(x.p)}<div style="flex:1;min-width:0"><b>${esc(x.p.name)}</b> <span class="mut">· ${sxl(x.p.sex)}${yr(x.p)?" · "+yr(x.p):""}</span><div class="mut" style="font-size:.8rem">Potentie combinatie</div>${barPct(x.P.pct)}${plusTag(x.P.plus)}${x.comp.length?`<div class="mut" style="font-size:.8rem;margin-top:4px">Vult aan:</div>${tags(x.comp,"+ ",GR)}`:""}${x.bu.length?`<div style="color:var(--bad);font-size:.85rem">Ongewenst in combinatie: ${x.bu.map(esc).join(", ")}</div>`:""}<div style="margin-top:8px">${btn}</div></div></div>`;
 function partnerBox(b){const l=reco(b,5),o=b.sex==="haan"?"hennen":"hanen";
-  return `<h2>Wie past erbij?</h2><p class="mut" style="margin:0 0 8px">De beste ${o} bij ${esc(b.name)}, op basis van je fokdoel.</p>`+(l.map(x=>recRow(b,x,bPairBtn(b.sex==="haan"?b.id:x.p.id,b.sex==="haan"?x.p.id:b.id))).join("")||`<p class="mut">Er zijn nog geen ${o} toegevoegd.</p>`)}
+  return `<details style="margin-top:14px"><summary style="font-size:1.17rem;font-weight:700;cursor:pointer">Potentiële partners</summary><p class="mut" style="margin:6px 0 8px">De beste ${o} bij ${esc(b.name)}, op basis van je fokdoel.</p>`+(l.map(x=>recRow(b,x,bPairBtn(b.sex==="haan"?b.id:x.p.id,b.sex==="haan"?x.p.id:b.id))).join("")||`<p class="mut">Er zijn nog geen ${o} toegevoegd.</p>`)+`</details>`}
 /* kalender */
-function bMo(n){const[y,m]=bmo.split("-").map(Number);bmo=isoD(new Date(y,m-1+n,1));rBrood()}
-function bSelD(d){bsel=d;rBrood()}
-function bToday(){bmo=todayI().slice(0,7)+"-01";bsel=todayI();rBrood()}
+function bMo(n){const[y,m]=bmo.split("-").map(Number);bmo=isoD(new Date(y,m-1+n,1));bpop=false;rBrood()}
+function bSelD(d){bsel=d;bpop=true;rBrood()}
+function bClose(){bpop=false;rBrood()}
+function bToday(){bmo=todayI().slice(0,7)+"-01";bsel=todayI();bpop=false;rBrood()}
 function bCal(act){
   const T=todayI();if(!bmo)bmo=T.slice(0,7)+"-01";if(!bsel)bsel=T;
   const[y,m]=bmo.split("-").map(Number),dow=new Date(y,m-1,1).getDay(),g0=addD(bmo,-dow),dim=new Date(y,m,0).getDate(),tot=Math.ceil((dow+dim)/7)*7;
@@ -732,16 +738,15 @@ function bCal(act){
   const dl=day.length?day.map(({e,p})=>`<div style="padding:6px 0;border-top:1px solid var(--bd);cursor:pointer" onclick="bOpen('${p.id}')"><i class="ek ek-${e.k}">${BK[e.k]}</i> <span class="mut">${bNm(p.rooster)} × ${bNm(p.hen)}</span><div>${e.t}</div></div>`).join(""):'<p class="mut" style="margin:6px 0 0">Niets gepland op deze dag.</p>';
   return `<div class="card"><div class="row" style="align-items:center;margin:0 0 8px"><button class="btn" onclick="bMo(-1)" aria-label="Vorige maand">‹</button><b style="flex:1;text-align:center;text-transform:capitalize;white-space:nowrap">${new Date(y,m-1,1).toLocaleDateString("nl-NL",{month:"long",year:"numeric"})}</b><button class="btn" onclick="bMo(1)" aria-label="Volgende maand">›</button></div>
   <div class="cal">${["zo","ma","di","wo","do","vr","za"].map(x=>`<div class="cwd">${x}</div>`).join("")}${cells}</div>
-  <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">${["samen","sparen","inleg","schouw","keren","uit"].map(k=>`<i class="ek ek-${k}">${BK[k]}</i>`).join("")}<button class="btn" style="margin-left:auto;padding:2px 10px" onclick="bToday()">Vandaag</button></div>
-  <h2 style="margin:12px 0 0;font-size:1rem">${fmtL(bsel)} <span class="mut" style="font-weight:400">· ${relD(bsel)}</span></h2>${dl}</div>`}
+  <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">${["samen","sparen","inleg","schouw","keren","uit"].map(k=>`<i class="ek ek-${k}">${BK[k]}</i>`).join("")}<button class="btn" style="margin-left:auto;padding:2px 10px" onclick="bToday()">Vandaag</button></div></div>${bpop?`<div class="ovl" onclick="bClose()"><div class="card pop" onclick="event.stopPropagation()"><div class="row" style="align-items:center;margin:0 0 4px"><b style="flex:1">${fmtL(bsel)} <span class="mut" style="font-weight:400">· ${relD(bsel)}</span></b><button class="btn" style="padding:2px 12px;flex:none;width:auto" onclick="bClose()" aria-label="Sluiten">✕</button></div>${dl}</div></div>`:""}`}
 function rBrood(){
   const el=$("v-brood");let h="";
   if(bp){const m=bp.mode,e=m!=="al";
     h+=`<div class="card"><h2 style="margin-top:0">${bp.isNew?"Nieuw broedplan":"Broedplan wijzigen"}</h2>${bTiles(bp.rooster,bp.hen)}
-    <label>Hoe wil je plannen?</label><select onchange="bpMode(this.value)"><option value="plan"${m==="plan"?" selected":""}>Vanaf de dag dat ze bij elkaar komen</option><option value="inleg"${m==="inleg"?" selected":""}>Ik kies de gewenste inlegdatum</option><option value="uit"${m==="uit"?" selected":""}>Ik kies de gewenste uitkomstdatum</option><option value="al"${m==="al"?" selected":""}>De eieren liggen al in</option></select>
-    ${m==="plan"?`<label>Datum dat haan en hen bij elkaar komen</label><input type="date" value="${esc(bp.start||"")}" oninput="bpF('start',this.value)">`:""}
+    <label>Hoe wil je plannen?</label><select onchange="bpMode(this.value)"><option value="plan"${m==="plan"?" selected":""}>Vanaf de dag van koppelen</option><option value="inleg"${m==="inleg"?" selected":""}>Ik kies de gewenste inlegdatum</option><option value="uit"${m==="uit"?" selected":""}>Ik kies de gewenste uitkomstdatum</option><option value="al"${m==="al"?" selected":""}>De eieren liggen al in</option></select>
+    ${m==="plan"?`<label>Datum van koppelen</label><input type="date" value="${esc(bp.start||"")}" oninput="bpF('start',this.value)">`:""}
     ${m==="inleg"||m==="uit"?`<label>${m==="inleg"?"Gewenste inlegdatum":"Gewenste uitkomstdatum"}</label><input type="date" value="${esc(bp.tdate||"")}" oninput="bpF('tdate',this.value)">`:""}
-    ${m==="al"?`<label>Eieren ingelegd op</label><input type="date" value="${esc(bp.bstart||"")}" oninput="bpF('bstart',this.value)"><label>Haan en hen bij elkaar sinds (optioneel)</label><input type="date" value="${esc(bp.start||"")}" oninput="bpF('start',this.value)">`:""}
+    ${m==="al"?`<label>Eieren ingelegd op</label><input type="date" value="${esc(bp.bstart||"")}" oninput="bpF('bstart',this.value)"><label>Haan en hen gekoppeld sinds (optioneel)</label><input type="date" value="${esc(bp.start||"")}" oninput="bpF('start',this.value)">`:""}
     ${e?`<label>Hoeveel eieren wil je broeden?</label><input type="number" min="1" max="60" inputmode="numeric" value="${bp.eggs}" oninput="bpF('eggs',this.value)">
     <label>Vanaf wanneer zijn de eieren zeker van deze haan?</label><select onchange="bpF('fert',this.value)"><option value="14"${+bp.fert===14?" selected":""}>Na 14 dagen (zeker)</option><option value="10"${+bp.fert===10?" selected":""}>Na 10 dagen (eerder, minder zeker)</option></select>`:""}
     <label>Broedduur in dagen</label><input type="number" min="17" max="30" inputmode="numeric" value="${bp.hatch}" oninput="bpF('hatch',this.value)">
@@ -758,7 +763,11 @@ function rBrood(){
     <div class="row"><button class="btn" onclick="bDone('${pl.id}',${!pl.done})">${pl.done?"Heropenen":"Markeer als afgerond"}</button><button class="btn del" onclick="bDel('${pl.id}')">Verwijderen</button></div></div>`;
     el.innerHTML=h;return}
   if(bch){
-    h+=`<button class="btn" onclick="bCh(false)">‹ Terug</button><h2>Kies een combinatie</h2>`+(pairs.length?pairs.map(p=>`<div class="card" style="cursor:pointer" onclick="bNew('${p.rooster}','${p.hen}')"><b>${esc(p.name)}</b>${bTiles(p.rooster,p.hen)}</div>`).join(""):`<p class="mut">Er zijn nog geen combinaties. Maak eerst een combinatie, bijvoorbeeld via “Wie past erbij?” bij een dier.</p>`);
+    const hs=birds.filter(b=>b.sex==="haan"&&!b.gone),hn=birds.filter(b=>b.sex==="hen"&&!b.gone);
+    const pk=(l,w)=>l.map(b=>`<div class="pick${bnp[w]===b.id?" on":""}" onclick="bnp.${w}=bnp.${w}==='${b.id}'?'':'${b.id}';rBrood()">${b.photo?`<img src="${b.photo}" alt="${esc(b.name)}">`:`<div class="ph">${sxi(b.sex)}</div>`}<span>${esc(b.name)}</span></div>`).join("")||'<span class="mut">Nog geen dieren van dit geslacht.</span>';
+    h+=`<button class="btn" onclick="bCh(false)">‹ Terug</button><h2>Nieuw broedplan</h2>${seg([["kies","Kies een combinatie"],["nieuw","Maak nieuwe combinatie"]],bchM,"bchSet")}`;
+    if(bchM==="kies")h+=(pairs.length?pairs.map(p=>`<div class="card" style="cursor:pointer;margin-top:10px" onclick="bNew('${p.rooster}','${p.hen}')"><b>${esc(p.name)}</b>${bTiles(p.rooster,p.hen)}</div>`).join(""):`<p class="mut">Er zijn nog geen combinaties. Kies hierboven “Maak nieuwe combinatie”.</p>`);
+    else h+=`<div class="card" style="margin-top:10px"><label>${sxl("haan")}</label><div class="pickrow">${pk(hs,"r")}</div><label>${sxl("hen")}</label><div class="pickrow">${pk(hn,"h")}</div><button class="btn pri" style="margin-top:12px;width:100%" onclick="bMakeNew()">Combinatie maken en plan starten</button></div>`;
     el.innerHTML=h;return}
   const act=[],fin=[];brood.forEach(p=>{const s=bStat(p);(s.ph===4?fin:act).push({p,s})});
   act.sort((a,b)=>{const x=bNext(a.s.q),y=bNext(b.s.q);return (x?x.d:"9")<(y?y.d:"9")?-1:1});
