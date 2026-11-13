@@ -162,7 +162,7 @@ function editPair(id){pvp=null;pd=JSON.parse(JSON.stringify(pairs.find(p=>p.id==
 function rPairForm(){if(pd.custom===undefined)pd.custom=!!(pd.name&&pd.name!==pAuto());
   const opt=sex=>`<option value="">— kies —</option>`+birds.filter(b=>b.sex===sex).map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("");
   $("v-pairs").innerHTML=`<div class="card"><h2 style="margin-top:0">${pairs.find(p=>p.id===pd.id)?"Combinatie bewerken":"Nieuwe combinatie"}</h2>
-  <label>Jaar <span class="mut" style="font-weight:400">(wordt het geboortejaar van de nakomelingen zodra die er zijn)</span></label><input type="number" id="pyear" min="1980" max="2100" value="${pairYear(pd)}"><div id="pt"></div><div id="ps"></div><label>${sxl("haan")}</label><div class="pickrow" id="pkr"></div><label>${sxl("hen")}</label><div class="pickrow" id="pkh"></div><label class="chk" style="margin-top:8px"><input type="checkbox" ${showGone?"checked":""} onchange="setGone(this.checked)">Toon ook dieren die niet meer aanwezig zijn</label>
+  <label>Jaar <span class="mut" style="font-weight:400">(wordt het geboortejaar van de nakomelingen zodra die er zijn)</span></label><input type="number" id="pyear" min="1980" max="2100" value="${pairYear(pd)}"><label>Status</label><div id="pstw">${pstSeg()}</div><div id="pt"></div><div id="ps"></div><label>${sxl("haan")}</label><div class="pickrow" id="pkr"></div><label>${sxl("hen")}</label><div class="pickrow" id="pkh"></div><label class="chk" style="margin-top:8px"><input type="checkbox" ${showGone?"checked":""} onchange="setGone(this.checked)">Toon ook dieren die niet meer aanwezig zijn</label>
   ${!birds.some(b=>b.sex==="haan")||!birds.some(b=>b.sex==="hen")?'<p class="mut">Voeg eerst minstens één haan en één hen toe bij “Kippen”.</p>':""}
   <div id="pv"></div>
   <h2>Nakomelingen</h2><div>${kidTiles(pd.id,false)}</div><p><button class="btn" onclick="addKid()">+ Nakomeling toevoegen</button></p>
@@ -340,7 +340,7 @@ function rBirds(){
   <label>Aanwezigheid</label>${seg([["","Alle"],["aanwezig","Aanwezig"],["weg","Niet meer aanwezig"]],flt.pres,"setPresF")}
   <label>Geboortejaar</label><select onchange="setF('year',this.value)">${op("","Alle",flt.year)}${years.map(y=>op(y,y,flt.year)).join("")}</select>
   ${act?'<button class="btn" onclick="clrF()">Filters wissen</button>':""}</details>
-  <p><button class="btn pri" onclick="newBird()">Toevoegen</button></p><button class="fab" onclick="newBird()" aria-label="Dier toevoegen">+</button>
+  <button class="fab" onclick="newBird()" aria-label="Dier toevoegen">+</button>
   <div class="hrow"><h2>Overzicht</h2><div class="ics"><button class="ic${vm==="groot"?" on":""}" onclick="setView('groot')" title="Grote tegels" aria-label="Grote tegels">${icL}</button><button class="ic${vm==="klein"?" on":""}" onclick="setView('klein')" title="Kleine tegels" aria-label="Kleine tegels">${icS}</button></div></div>
   ${shown.length?grpHtml(shown,yr,item,h=>`<div class="grid${vm==="klein"?" smg":""}">${h}</div>`):'<p class="mut">Geen dieren gevonden.</p>'}`}
 /* ---------- Fokdoel ---------- */
@@ -416,15 +416,26 @@ function setView(m){vmode=m;saveView();rBirds()}
 function setSortB(v){sortB=v;saveView();rBirds()}
 function setSortP(v){sortP=v;saveView();rPairs()}
 /* ---------- Combinaties ---------- */
-function newPair(){pd={id:uid(),name:"",rooster:"",hen:"",notes:"",updated:Date.now(),year:new Date().getFullYear()};rPairs()}
+let pst="";
+function newPair(){pd={id:uid(),name:"",rooster:"",hen:"",notes:"",updated:Date.now(),year:new Date().getFullYear(),plan:pst==="plan"};rPairs()}
+function setPst(v){pst=v;rPairs()}
+function setPlanF(v){pd.plan=!!v;$("pstw").innerHTML=pstSeg()}
+const pstSeg=()=>seg([["","Gekoppeld"],["1","Gepland (nog niet gekoppeld)"]],pd.plan?"1":"","setPlanF");
+async function pTogglePlan(id){const p=pairs.find(x=>x.id===id);if(!p)return;p.plan=!p.plan;await put("pairs",p);if(pvp)rPairDetail();else rPairs()}
 function startPair(r,h){pd={id:uid(),name:"",rooster:r,hen:h,notes:"",updated:Date.now(),year:new Date().getFullYear()};show("pairs")}
 function rPairs(){
   if(pd)return rPairForm();if(pvp)return rPairDetail();
+  const nP=pairs.filter(p=>p.plan).length,nG=pairs.length-nP,sh=pst==="plan"?nP:nG;
   $("v-pairs").innerHTML=`<button class="btn pri" onclick="newPair()">+ Nieuwe combinatie</button>
-  <h2>Opgeslagen combinaties (${pairs.length})</h2>
-  ${pairs.length?`<input id="pq" placeholder="Zoeken op naam of dier…" value="${esc(pq)}" oninput="pq=this.value;rPairList()"><div id="pl"></div>`:'<p class="mut">Nog geen combinaties.</p>'}`;
+  <div style="margin-top:12px">${seg([["","Combinaties ("+nG+")"],["plan","Gepland ("+nP+")"]],pst,"setPst")}</div>
+  ${pst==="plan"?'<p class="mut" style="font-size:.85rem;margin:8px 0 0">Combinaties die je nog wilt maken. Een broedplan kun je later maken. Tik op een combinatie en kies Markeer als gekoppeld zodra het zover is.</p>':""}
+  <h2>${pst==="plan"?"Geplande combinaties":"Opgeslagen combinaties"} (${sh})</h2>
+  ${sh?`<input id="pq" placeholder="Zoeken op naam of dier…" value="${esc(pq)}" oninput="pq=this.value;rPairList()"><div id="pl"></div>`:`<p class="mut">${pst==="plan"?"Nog geen geplande combinaties. Maak er een met de knop hierboven, of kies bij een dier Potentiële partners.":"Nog geen combinaties."}</p>`}`;
   rPairList()}
 const pairPlans=p=>{const l=brood.filter(x=>x.rooster===p.rooster&&x.hen===p.hen);return (l.length?l.map(x=>{const st=bStat(x),nx=bNext(st.q);return `<div class="card" style="cursor:pointer;margin-bottom:8px" onclick="bOpen('${x.id}')"><span class="tag" style="margin:0">${st.txt}</span>${nx&&st.ph<4?`<div class="mut" style="margin-top:6px">Volgende: ${fmtL(nx.d)} (${relD(nx.d)})<br>${nx.t}</div>`:`<div class="mut" style="margin-top:6px">Uitgekomen ${fmtL(st.q.hatch)}</div>`}</div>`}).join(""):'<p class="mut" style="margin:0 0 8px">Nog geen broedplan voor deze combinatie.</p>')+`<button class="btn" onclick="bNew('${p.rooster}','${p.hen}')">+ Broedplan maken</button>`};
+function focLine(p){const r=bird(p.rooster),h=bird(p.hen),sel=(p.focus||[]).map(k=>goal.find(g=>key(g)===k)).filter(Boolean);if(!sel.length)return"";
+  const v=g=>r&&h?Math.max(val(r,g),val(h,g)):0;
+  return `<div class="mut" style="font-size:.7rem;margin-top:6px">Focus</div><div>${sel.map(g=>`<span class="tag" style="font-size:.72rem;padding:2px 8px;${v(g)>0?"":"opacity:.75;border-style:dashed"}">${esc(g)} ${v(g)>0?`<span class="vk gn">${CK1}</span>`:'<span class="mut">ontbreekt</span>'}</span>`).join("")}</div>`}
 function pFocusBox(p){const r=bird(p.rooster),h=bird(p.hen),sel=(p.focus||[]).map(k=>goal.find(g=>key(g)===k)).filter(Boolean);
   const v=g=>r&&h?Math.max(val(r,g),val(h,g)):0,nc=g=>[r,h].some(b=>b&&hasT(b,g)&&!isCar(b,g)),ok=sel.filter(g=>v(g)>0).length;
   const chip=g=>{const x=v(g);return `<span class="tag" style="${x>=1?"":x>0?"":"opacity:.75;border-style:dashed"}">${esc(g)} ${nc(g)?`<span class="vk gn">${CK1}</span>`:x>0?'<span class="mut">(drager)</span>':'<span class="mut">ontbreekt</span>'}</span>`};
@@ -432,15 +443,15 @@ function pFocusBox(p){const r=bird(p.rooster),h=bird(p.hen),sel=(p.focus||[]).ma
 async function pFocus(k){const p=pairs.find(x=>x.id===pvp);if(!p)return;const a=p.focus||[];p.focus=a.includes(k)?a.filter(x=>x!==k):[...a,k];await put("pairs",p);rPairDetail()}
 function rPairDetail(){
   const p=pairs.find(x=>x.id===pvp);if(!p){pvp=null;return rPairs()}
-  $("v-pairs").innerHTML=`<div class="card"><h2 style="margin-top:0">${esc(p.name)} <span class="mut" style="font-weight:400">· ${pairYear(p)}</span></h2><div id="ps"></div><div id="pv"></div>${pFocusBox(p)}<h2>Broedplan</h2>${pairPlans(p)}${succBox(p)}<h2>Nakomelingen</h2><div class="kids">${kidTiles(p.id,true)}</div>${p.notes?`<h2>Notities</h2><p>${esc(p.notes)}</p>`:""}<p class="row"><button class="btn pri" onclick="editPair('${p.id}')">Bewerken</button><button class="btn" onclick="backPair()">Terug</button></p></div>`;
+  $("v-pairs").innerHTML=`<div class="card"><h2 style="margin-top:0">${esc(p.name)} <span class="mut" style="font-weight:400">· ${pairYear(p)}</span></h2>${p.plan?`<div style="margin-bottom:8px"><span class="tag" style="margin:0">Gepland</span> <button class="btn" style="padding:2px 12px;margin-left:6px" onclick="pTogglePlan('${p.id}')">Markeer als gekoppeld</button></div>`:""}<div id="ps"></div><div id="pv"></div>${pFocusBox(p)}<h2>Broedplan</h2>${p.plan&&!brood.some(x=>x.rooster===p.rooster&&x.hen===p.hen)?'<p class="mut" style="margin:0 0 8px">Een broedplan kun je ook later maken.</p>':""}${pairPlans(p)}${succBox(p)}<h2>Nakomelingen</h2><div class="kids">${kidTiles(p.id,true)}</div>${p.notes?`<h2>Notities</h2><p>${esc(p.notes)}</p>`:""}<p class="row"><button class="btn pri" onclick="editPair('${p.id}')">Bewerken</button><button class="btn" onclick="backPair()">Terug</button></p></div>`;
   rOver(p)}
 function rPairList(){
   const el=$("pl");if(!el)return;
   const q=pq.toLowerCase();
   const bt=b=>b?`<div style="text-align:center;cursor:pointer" onclick="event.stopPropagation();openBird('${b.id}',{t:'pairlist'})">${th2(b,72)}<div class="mut" style="font-size:.72rem">${esc(b.name)}</div></div>`:`<div style="text-align:center">${th2(null,72)}<div class="mut" style="font-size:.72rem">verwijderd</div></div>`;
-  const list=sortPairs(pairs.filter(p=>(p.name+" "+(bird(p.rooster)?.name||"")+" "+(bird(p.hen)?.name||"")).toLowerCase().includes(q)));
+  const list=sortPairs(pairs.filter(p=>!!p.plan===(pst==="plan")).filter(p=>(p.name+" "+(bird(p.rooster)?.name||"")+" "+(bird(p.hen)?.name||"")).toLowerCase().includes(q)));
   const cardP=p=>{const ks=birds.filter(k=>k.pair===p.id),po=potOf(p),sc=succ(p);const t=b=>b?`<div style="text-align:center;min-width:0">${th2(b,52)}<div class="mut" style="font-size:.68rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:56px">${esc(b.name)}</div></div>`:`<div style="text-align:center">${th2(null,52)}<div class="mut" style="font-size:.68rem">verwijderd</div></div>`;
-    return `<div class="card pc" style="cursor:pointer" onclick="openPair('${p.id}')"><button class="btn del pcx" onclick="event.stopPropagation();delPair('${p.id}')" aria-label="Verwijder combinatie">✕</button><div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:6px 0">${t(bird(p.rooster))}<span>×</span>${t(bird(p.hen))}</div>${po>=0?`<div class="mut" style="font-size:.7rem">Potentie</div>${barPct(po)}`:""}${sc?`<div class="mut" style="font-size:.7rem;margin-top:4px">Succes (${sc.n} nak.)</div>${barPct(sc.avg)}`:'<div class="mut" style="font-size:.7rem;margin-top:4px">Nog geen nakomelingen</div>'}</div>`};
+    return `<div class="card pc" style="cursor:pointer" onclick="openPair('${p.id}')"><button class="btn del pcx" onclick="event.stopPropagation();delPair('${p.id}')" aria-label="Verwijder combinatie">✕</button><div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:6px 0">${t(bird(p.rooster))}<span>×</span>${t(bird(p.hen))}</div>${po>=0?`<div class="mut" style="font-size:.7rem">Potentie</div>${barPct(po)}`:""}${sc?`<div class="mut" style="font-size:.7rem;margin-top:4px">Succes (${sc.n} nak.)</div>${barPct(sc.avg)}`:p.plan?"":'<div class="mut" style="font-size:.7rem;margin-top:4px">Nog geen nakomelingen</div>'}${focLine(p)}${p.plan?`<button class="btn" style="width:100%;margin-top:8px;padding:4px 0;font-size:.8rem" onclick="event.stopPropagation();pTogglePlan('${p.id}')">Markeer als gekoppeld</button>`:""}</div>`};
   el.innerHTML=grpHtml(list,pairYear,cardP,h=>`<div class="pgrid">${h}</div>`)||'<p class="mut">Niets gevonden.</p>'}
 function rOver(q){q=q||pd;
   const r=bird(q.rooster),h=bird(q.hen),el=$("pv"),ps=$("ps");
@@ -716,7 +727,7 @@ const bTL=q=>{const nx=bNext(q);return `<div class="tl">${q.ev.map(e=>`<div clas
 const bInfo=q=>q.inl?(q.early?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die vóór ${fmtL(q.sp)} zijn gelegd kunnen nog van een andere haan zijn.</p>`:""):`<p class="mut" style="margin:8px 0">Eieren sparen duurt ongeveer ${q.days} dagen (rekening houdend met 2 eieren per 3 dagen).</p>${q.late?`<p style="color:var(--bad);margin:8px 0">Dat is te kort dag: haan en hen hadden al op ${fmtL(q.start)} gekoppeld moeten zijn. Koppel je ze vandaag, dan kun je op zijn vroegst inleggen op ${fmtL(q.earliest)}.</p>`:""}${q.days>10?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die langer dan ± 10 dagen liggen komen minder goed uit. Bewaar ze koel (12 tot 16 °C), de punt naar beneden, en draai ze elke dag. Overweeg anders in twee rondes te broeden.</p>`:""}`;
 function bNew(r,h){bp={id:uid(),rooster:r,hen:h,mode:"plan",start:todayI(),tdate:"",eggs:12,fert:14,hatch:21,bstart:"",notes:"",done:false,isNew:true};bv=null;bch=false;show("brood")}
 function bpMode(v){bp.mode=v;const T=todayI();if(v==="al"&&!bp.bstart)bp.bstart=T;if(v!=="al")bp.bstart="";if(v==="plan"&&!bp.start)bp.start=T;if(v==="inleg"||v==="uit")bp.tdate=addD(T,(+bp.fert||14)+Math.ceil((+bp.eggs||12)*1.5)+(v==="uit"?(+bp.hatch||21):0));rBrood()}
-async function mkPair(r,h){const p={id:uid(),name:(bird(r)?bird(r).name:"")+" × "+(bird(h)?bird(h).name:""),rooster:r,hen:h,notes:"",updated:Date.now(),year:new Date().getFullYear()};await put("pairs",p);await load();openPair(p.id)}
+async function mkPair(r,h){const p={id:uid(),name:(bird(r)?bird(r).name:"")+" × "+(bird(h)?bird(h).name:""),rooster:r,hen:h,notes:"",updated:Date.now(),year:new Date().getFullYear(),plan:true};await put("pairs",p);await load();pst="plan";openPair(p.id)}
 function bCh(v){bch=v;bv=null;bp=null;bnp={r:"",h:""};rBrood()}
 function bchSet(v){bchM=v;rBrood()}
 async function bMakeNew(){if(!bnp.r||!bnp.h){alert("Kies een haan en een hen.");return}
