@@ -128,7 +128,7 @@ function rBirdForm(){
   <label>Naam of ringnummer</label><input id="bn" value="${esc(bd.name)}">
   <label>Geslacht</label><div class="sx"><button type="button" id="sxh" class="btn" onclick="setSex('haan')"><span style="font-size:2.6rem">${sxi("haan")}</span><br>Haan</button><button type="button" id="sxn" class="btn" onclick="setSex('hen')"><span style="font-size:2.6rem">${sxi("hen")}</span><br>Hen</button></div>
   <label class="chk" style="margin-top:10px"><input type="checkbox" id="bgone" ${bd.gone?"checked":""}>Dit dier is niet meer aanwezig</label>
-  <label class="chk" style="margin-top:6px"><input type="checkbox" id="bnieuw" ${bd.nieuw?"checked":""}>Nieuw bloed (van buiten ingebracht)</label><div class="mut" style="font-size:.8rem;margin-left:30px">Zo'n dier gebruik je liefst eenmalig in een lijn.</div>
+  <label class="chk" style="margin-top:6px"><input type="checkbox" id="bnieuw" ${bd.nieuw?"checked":""}>Nieuw bloed</label><div class="mut" style="font-size:.8rem;margin-left:30px">Zo'n dier gebruik je liefst eenmalig in een lijn.</div>
   <label>Ouders (mag leeg, telt mee voor verwantschap)</label><label style="display:block">${sxl("haan")}</label><div id="wpa"></div><input type="hidden" id="bpa"><label style="display:block">${sxl("hen")}</label><div id="wpm"></div><input type="hidden" id="bpm"><div class="mut" style="font-size:.8rem">Kies je beide ouders, dan wordt dit automatisch een combinatie bij Combinaties.</div><label style="display:block;margin-top:10px">Nakomelingen (mag leeg)</label><div class="mut" style="font-size:.8rem">Kies de andere ouder en daarna de nakomelingen. Dit wordt automatisch een combinatie bij Combinaties.</div><label style="display:block">Andere ouder</label><div id="wpk"></div><input type="hidden" id="bpk"><div id="wkd"></div>
   <label>Geboortejaar</label><input type="number" id="bborn" min="1980" max="2100" placeholder="Bijv. 2026" value="${esc(yr(bd))}">
   <label>Foto’s</label><div id="bp">${photoImg()}</div><label class="btn fl" style="display:block;text-align:center">+ Foto toevoegen<input type="file" id="bf" accept="image/*" multiple hidden></label>
@@ -151,7 +151,7 @@ async function saveBird(){if(!bd)return;
   if(kidSel.size&&!pk){alert("Kies de andere ouder van de nakomelingen.");return}
   bd.born=$("bborn").value;bd.notes=$("bo").value;bd.gone=$("bgone").checked;bd.nieuw=$("bnieuw").checked;
   if(pk){const rid=bd.sex==="haan"?bd.id:pk,hid=bd.sex==="haan"?pk:bd.id;let kp=pairs.find(x=>x.rooster===rid&&x.hen===hid);
-    if(!kp&&kidSel.size){const r=rid===bd.id?bd:bird(rid),h=hid===bd.id?bd:bird(hid),ys=[...kidSel].map(i=>+yr(bird(i))).filter(Boolean);kp={id:uid(),name:`${r.name} × ${h.name}`,rooster:rid,hen:hid,notes:"",year:ys.length?Math.min(...ys):new Date().getFullYear(),updated:Date.now()};await put("pairs",kp);pairs.push(kp)}
+    if(!kp&&kidSel.size){const r=rid===bd.id?bd:bird(rid),h=hid===bd.id?bd:bird(hid),ys=[...kidSel].map(i=>+yr(bird(i))).filter(Boolean);kp={id:uid(),name:`${r.name} × ${h.name}`,rooster:rid,hen:hid,notes:"",year:ys.length?Math.min(...ys):seasonYear(),updated:Date.now()};await put("pairs",kp);pairs.push(kp)}
     if(kp)for(const k of birds){if(k.id===bd.id)continue;const want=kidSel.has(k.id);if(want&&k.pair!==kp.id){k.pair=kp.id;await put("birds",k)}else if(!want&&k.pair===kp.id){k.pair="";await put("birds",k)}}}
   bd.traits=ordT(bd.traits).filter(t=>applies(bd,t));
   if(oldB&&oldB.name!==bd.name)for(const p of pairs){if(p.rooster!==bd.id&&p.hen!==bd.id)continue;const R0=p.rooster===bd.id?oldB:bird(p.rooster),H0=p.hen===bd.id?oldB:bird(p.hen),auto=R0&&H0?`${R0.name} × ${H0.name}`:"";let nm=p.name;if(auto&&p.name===auto){const R1=p.rooster===bd.id?bd:R0,H1=p.hen===bd.id?bd:H0;nm=`${R1.name} × ${H1.name}`}else if(p.name&&p.name.includes(oldB.name))nm=p.name.split(oldB.name).join(bd.name);if(nm!==p.name){p.name=nm;await put("pairs",p)}}
@@ -242,7 +242,7 @@ function pickB(w,id){pd[w]=pd[w]===id?"":id;rPick();rPT();rOver()}
 const th2=(b,s)=>`<div class="t" style="width:${s}px;height:${s}px">${b&&b.photo?`<img src="${b.photo}" alt="">`:(b?(sxi(b.sex)):"?")}</div>`;
 const succ=p=>{const k=birds.filter(x=>x.pair===p.id);if(!k.length)return null;const sc=k.map(x=>fit(x)),mx=Math.max(...sc);return{n:k.length,avg:Math.round(sc.reduce((a,b)=>a+b,0)/k.length),max:mx,best:k[sc.indexOf(mx)]}};
 const succBox=p=>{const s=succ(p);if(!s)return"";const pot=potOf(p);return `<h2>Succes van deze combinatie</h2><div class="mut" style="font-size:.8rem">Gemiddelde score van de ${s.n} nakomeling${s.n===1?"":"en"} voor je fokdoel</div>${barPct(s.avg)}<p class="mut" style="font-size:.85rem;margin:4px 0">Beste nakomeling: ${esc(s.best.name)} (${s.max}%).${pot>=0?` Verwacht op basis van de ouders: ${pot}%.`:""}</p>`};
-const kidTiles=(id,click)=>birds.filter(k=>k.pair===id).map(k=>`<div class="kid"${click?` onclick="openBird('${k.id}',{t:'pair',id:'${id}'})"`:""}>${th2(k,64)}<span>${esc(k.name)}</span>${click?`<span class="mut" style="font-size:.7rem">${fit(k)}%</span>`:""}</div>`).join("")||'<span class="mut">Nog geen nakomelingen.</span>';
+const kidTiles=(id,click)=>birds.filter(k=>k.pair===id).map(k=>`<div class="kid"${click?` onclick="openBird('${k.id}',{t:'pair',id:'${id}'})"`:""}>${th2(k,64)}<span>${esc(k.name)}</span>${click?`<div class="bar" style="width:64px;margin:3px auto 0"><i style="width:${fit(k)}%;background:${fcol(fit(k))}"></i></div><span class="mut" style="font-size:.7rem">${fit(k)}%</span>`:""}</div>`).join("")||'<span class="mut">Nog geen nakomelingen.</span>';
 function tab(v){pairNext=false;if(v==="brood"){bv=null;bp=null;bch=false}if(v==="birds")pv=null;if(v==="pairs")pvp=null;show(v)}
 function openBird(id,from){pv=id;bk=from||null;bd=null;show("birds")}
 function openPair(id,from){pvp=id;pbk=from||null;pd=null;show("pairs")}
@@ -284,7 +284,7 @@ function rPed(){
   const tile=x=>`<div class="kid" onclick="openBird('${x.id}',{t:'bird',id:'${pv}'})">${th2(x,72)}<span>${esc(x.name)}</span></div>`;
   const kids=birds.filter(k=>{const q=pairs.find(z=>z.id===k.pair);return q&&(q.rooster===pv||q.hen===pv)});
   $("v-birds").innerHTML=`<p style="margin:0 0 10px"><button class="btn pri" onclick="pv=null;bk=null;rBirds()">← Terug naar overzicht</button></p><div class="card"><div style="max-width:420px">${galHtml(b)}</div>
-  ${(ref[b.sex]||[]).length?`<button class="btn" style="margin-top:8px;font-size:.85rem" onclick="refCmp('${b.id}')">Vergelijk met voorbeeld ${b.sex==="haan"?"haan":"hen"}</button>`:""}
+  ${(ref[b.sex]||[]).length?`<button class="btn" style="margin-top:8px;font-size:.85rem" onclick="refCmp('${b.id}')">Vergelijk met fokdoel</button>`:""}
   <h2>${sxi(b.sex)} ${esc(b.name)}</h2>${b.nieuw||useN(b.id)?`<p style="margin:0 0 4px">${b.nieuw?`<span class="tag" style="margin:0">Nieuw bloed</span> `:""}${useN(b.id)?`<span class="mut" style="font-size:.85rem">${useN(b.id)}× eerder ingezet</span>`:""}</p>`:""}
   ${b.born?`<p class="mut" style="margin:0">Geboren: ${esc(yr(b))}</p>`:""}${b.gone?`<p style="margin:4px 0">${goneTag(b,true)}</p>`:""}
   ${barH(b)}<div class="mut" style="font-size:.8rem;margin-bottom:8px">Hoe dicht dit dier bij je fokdoel zit. Dubbel tellende kenmerken wegen zwaarder, ongewenste kenmerken trekken eraf.</div>${subFit(b)}
@@ -351,9 +351,9 @@ function goalReset(){if(confirm("Fokdoel terugzetten naar de standaardlijst? Je 
 const saveRef=()=>put("meta",{id:"ref",haan:ref.haan,hen:ref.hen});
 async function refAdd(x,inp){for(const f of inp.files)ref[x].push(await shrink(f));await saveRef();rGoal()}
 
-function refCmp(id){const b=bird(id);if(!b)return;const r=ref[b.sex]||[],mine=galAll(b),o=document.createElement("div");o.className="ov";o.style.cssText+=";flex-direction:column;gap:6px;padding:8px";
-const pane=(lab,a)=>`<div style="flex:1;min-height:0;width:100%;display:flex;flex-direction:column"><div style="color:#fff;font-size:.8rem;margin:0 0 3px 4px">${lab}</div><div style="flex:1;min-height:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:6px;scrollbar-width:none">${a.length?a.map(s=>`<img src="${s}" alt="" style="flex:none;width:100%;height:100%;object-fit:contain;scroll-snap-align:center;max-width:100%;max-height:100%">`).join(""):'<div style="color:#fff;margin:auto">Geen foto</div>'}</div></div>`;
-o.innerHTML=pane(esc(b.name),mine)+pane("Voorbeeld "+b.sex,r)+'<button class="lbx" aria-label="Sluiten">✕</button>';o.onclick=e=>{if(e.target===o||e.target.className==="lbx")o.remove()};document.body.appendChild(o)}
+function refCmp(id){const b=bird(id);if(!b)return;const r=ref[b.sex]||[],mine=galAll(b),o=document.createElement("div");o.className="ov";o.style.cssText+=";flex-direction:column;gap:6px;padding:8px;background:rgba(0,0,0,.94)";
+const pane=(lab,a)=>`<div class="rcp" style="flex:1;min-height:0;width:100%;display:flex;flex-direction:column"><div style="color:#fff;font-size:.8rem;margin:0 0 3px 4px;display:flex;align-items:center;gap:10px">${lab}<button type="button" class="btn" style="padding:1px 10px;font-size:.75rem" onclick="event.stopPropagation();const w=this.closest('.rcp');w.dataset.m=w.dataset.m==='1'?'':'1';w.querySelectorAll('img').forEach(i=>i.style.transform=w.dataset.m?'scaleX(-1)':'')" aria-label="Spiegelen" title="Spiegelen"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3v18" stroke-dasharray="2 3"/><path d="M9 7 3 12l6 5z"/><path d="M15 7l6 5-6 5z"/></svg></button></div><div style="flex:1;min-height:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:6px;scrollbar-width:none">${a.length?a.map(s=>`<img src="${s}" alt="" style="flex:none;width:100%;height:100%;object-fit:contain;scroll-snap-align:center;max-width:100%;max-height:100%">`).join(""):'<div style="color:#fff;margin:auto">Geen foto</div>'}</div></div>`;
+o.innerHTML=pane(esc(b.name),mine)+pane("Fokdoel (voorbeeld "+b.sex+")",r)+'<button class="lbx" aria-label="Sluiten">✕</button>';o.onclick=e=>{if(e.target===o||e.target.className==="lbx")o.remove()};document.body.appendChild(o)}
 function showImg(x,i){const o=document.createElement("div");o.className="ov";o.onclick=()=>o.remove();o.innerHTML=`<img src="${ref[x][i]}" alt="">`;document.body.appendChild(o)}
 /* ---------- Pictogrammen, bevestiging, fokdoel ---------- */
 const CAR='<svg class="ck" viewBox="0 0 14 14" width="13" height="13"><circle cx="7" cy="7" r="5.5"/><path d="M7 1.5a5.5 5.5 0 0 0 0 11z" fill="currentColor"/></svg>';const CK1='<svg class="ck" viewBox="0 0 14 12" width="14" height="12"><path d="M1.5 6.5l3.5 3.5L12 2"/></svg>';
@@ -405,12 +405,12 @@ function setSortB(v){sortB=v;saveView();rBirds()}
 function setSortP(v){sortP=v;saveView();rPairs()}
 /* ---------- Combinaties ---------- */
 let pst="";
-function newPair(){pd={id:uid(),name:"",rooster:"",hen:"",notes:"",updated:Date.now(),year:new Date().getFullYear(),plan:pst==="plan"};rPairs()}
+function newPair(){pd={id:uid(),name:"",rooster:"",hen:"",notes:"",updated:Date.now(),year:seasonYear(),plan:pst==="plan"};rPairs()}
 function setPst(v){pst=v;rPairs()}
 function setPlanF(v){pd.plan=!!v;$("pstw").innerHTML=pstSeg()}
 const pstSeg=()=>seg([["","Gekoppeld"],["1","Gepland (nog niet gekoppeld)"]],pd.plan?"1":"","setPlanF");
 async function pTogglePlan(id){const p=pairs.find(x=>x.id===id);if(!p)return;p.plan=!p.plan;await put("pairs",p);if(pvp)rPairDetail();else rPairs()}
-function startPair(r,h,fk){pd={id:uid(),name:"",rooster:r,hen:h,notes:"",updated:Date.now(),year:new Date().getFullYear()};if(fk&&mf.length)pd.focus=mf.map(key);show("pairs")}
+function startPair(r,h,fk){pd={id:uid(),name:"",rooster:r,hen:h,notes:"",updated:Date.now(),year:seasonYear()};if(fk&&mf.length)pd.focus=mf.map(key);show("pairs")}
 function rPairs(){
   if(pd)return rPairForm();if(pvp)return rPairDetail();
   const nP=pairs.filter(p=>p.plan).length,nG=pairs.length-nP,sh=pst==="plan"?nP:nG;
@@ -452,7 +452,7 @@ function rOver(q){q=q||pd;
     const rm=vis(r),hm=vis(h),rm2=vis2(r),hm2=vis2(h),both=[],ro=[],ho=[];
     rm2.forEach((v,k)=>hm2.has(k)?both.push(v):ro.push(v));hm2.forEach((v,k)=>{if(!rm2.has(k))ho.push(v)});
     const dsc=(b,t)=>isCar(b,t)?"{cd}":tp(t)==="slider"?mkTok(sv(b,t)):"";
-    const sec=(c,t,a)=>`<div class="sec" style="border-color:var(--${c})"><b><span class="dot" style="background:var(--${c})"></span>${t} (${a.length})</b>${c==="both"&&a.length?`<div class="xh"><span class="ts xt"><span class="xc">haan</span><span class="xc">hen</span></span></div>`:""}<div>${a.map(x=>`<span class="tr" style="--c:var(--${c})">${(m=>m?(q=>q?`<span class="tn">${m[1]}</span><span class="ts xt"><span class="xc">${fmk(q[1])}</span><span class="xc">${fmk(q[2])}</span></span>`:`<span class="tn">${m[1]}</span><span class="ts">${fmk(m[2])}</span>`)(m[2].match(/^haan (.*), hen (.*)$/)):`<span class="tn">${esc(x)}</span>`)(esc(x).match(/^(.*?) \((.*)\)$/))}</span>`).join("")||'<span class="mut">Geen</span>'}</div></div>`;
+    const sec=(c,t,a)=>`<div class="sec" style="border-color:var(--${c})"><b><span class="dot" style="background:var(--${c})"></span>${t} (${a.length})</b>${c==="both"&&a.length?`<div class="xh"><span class="ts xt"><span class="xc">haan</span><span class="xc">hen</span></span></div>`:""}<div>${a.map(x=>`<span class="tr" style="--c:var(--${c})">${(m=>m?(q=>q?`<span class="tn">${m[1]}</span><span class="ts xt"><span class="xc">${fmk(q[1])}</span><span class="xc">${fmk(q[2])}</span></span>`:`<span class="tn">${m[1]}</span><span class="ts">${fmk(m[2])}</span>`)(m[2].match(/^haan (.*), hen (.*)$/)):`<span class="tn">${esc(x)}</span>`)(esc(x).match(/^(.*) \((beide|haan|hen|[^()]*\{c\w\}[^()]*)\)$/))}</span>`).join("")||'<span class="mut">Geen</span>'}</div></div>`;
     const mis=goal.filter(g=>!bonus[key(g)]&&val(r,g)===0&&val(h,g)===0);
     const bh=bad.filter(g=>rm.has(key(g))||hm.has(key(g))).map(x=>`${x} (${rm.has(key(x))&&hm.has(key(x))?"beide":rm.has(key(x))?"haan":"hen"})`);
     const cnt=`${P.present} van ${goal.filter(g=>!bonus[key(g)]).length} raskenmerken aanwezig`;
@@ -715,12 +715,12 @@ const bTL=q=>{const nx=bNext(q);return `<div class="tl">${q.ev.map(e=>`<div clas
 const bInfo=q=>q.inl?(q.early?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die vóór ${fmtL(q.sp)} zijn gelegd kunnen nog van een andere haan zijn.</p>`:""):`<p class="mut" style="margin:8px 0">Eieren sparen duurt ongeveer ${q.days} dagen (rekening houdend met 2 eieren per 3 dagen).</p>${q.late?`<p style="color:var(--bad);margin:8px 0">Dat is te kort dag: haan en hen hadden al op ${fmtL(q.start)} gekoppeld moeten zijn. Koppel je ze vandaag, dan kun je op zijn vroegst inleggen op ${fmtL(q.earliest)}.</p>`:""}${q.days>10?`<p style="color:var(--bad);margin:8px 0">Let op: eieren die langer dan ± 10 dagen liggen komen minder goed uit. Bewaar ze koel (12 tot 16 °C), de punt naar beneden, en draai ze elke dag. Overweeg anders in twee rondes te broeden.</p>`:""}`;
 function bNew(r,h){bp={id:uid(),rooster:r,hen:h,mode:"plan",start:todayI(),tdate:"",eggs:12,fert:14,hatch:21,bstart:"",notes:"",done:false,isNew:true};bv=null;bch=false;show("brood")}
 function bpMode(v){bp.mode=v;const T=todayI();if(v==="al"&&!bp.bstart)bp.bstart=T;if(v!=="al")bp.bstart="";if(v==="plan"&&!bp.start)bp.start=T;if(v==="inleg"||v==="uit")bp.tdate=addD(T,(+bp.fert||14)+Math.ceil((+bp.eggs||12)*1.5)+(v==="uit"?(+bp.hatch||21):0));rBrood()}
-async function mkPair(r,h){const p={id:uid(),name:(bird(r)?bird(r).name:"")+" × "+(bird(h)?bird(h).name:""),rooster:r,hen:h,notes:"",updated:Date.now(),year:new Date().getFullYear(),plan:true};await put("pairs",p);await load();pst="plan";openPair(p.id)}
+async function mkPair(r,h){const p={id:uid(),name:(bird(r)?bird(r).name:"")+" × "+(bird(h)?bird(h).name:""),rooster:r,hen:h,notes:"",updated:Date.now(),year:seasonYear(),plan:true};await put("pairs",p);await load();pst="plan";openPair(p.id)}
 function bCh(v){bch=v;bv=null;bp=null;bnp={r:"",h:""};rBrood()}
 function bchSet(v){bchM=v;rBrood()}
 async function bMakeNew(){if(!bnp.r||!bnp.h){alert("Kies een haan en een hen.");return}
   let p=pairs.find(x=>x.rooster===bnp.r&&x.hen===bnp.h);
-  if(!p){p={id:uid(),name:bird(bnp.r).name+" × "+bird(bnp.h).name,rooster:bnp.r,hen:bnp.h,notes:"",updated:Date.now(),year:new Date().getFullYear()};await put("pairs",p);await load()}
+  if(!p){p={id:uid(),name:bird(bnp.r).name+" × "+bird(bnp.h).name,rooster:bnp.r,hen:bnp.h,notes:"",updated:Date.now(),year:seasonYear()};await put("pairs",p);await load()}
   bNew(bnp.r,bnp.h)}
 function bEdit(id){bp=JSON.parse(JSON.stringify(brood.find(x=>x.id===id)));bp.mode=bModeOf(bp);show("brood")}
 function bOpen(id){bv=id;bp=null;bch=false;bpop=false;show("brood")}
@@ -856,6 +856,7 @@ function risk(r,h,pid){kinM={};const R_=typeof r==="string"?bird(r):r,H=typeof h
   return{t,n,fo:Fo,div,nf}}
 const riskH=k=>k&&k.n.length?`<div class="rkw">${k.n.map(q=>`<div class="rk" style="--c:var(--${q.l===2?"bad":q.l===1?"org":"gry"})">${q.x}</div>`).join("")}</div>`:"";
 const riskTag=k=>k&&k.t===2?`<div class="rk" style="--c:var(--${k.t===2?"bad":"org"});margin-top:6px">${k.t===2?"Liever niet: hoge inteelt in een al ingeteelde lijn":"Let op: hoge inteelt"}</div>`:"";
+const seasonYear=()=>{const d=new Date();return d.getFullYear()+(d.getMonth()>=7?1:0)};
 /* ---------- Start ---------- */
 (async()=>{try{db=await open();await load();rBirds();bkBar();brBar();try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}catch(e){$("v-birds").innerHTML='<div class="card">Opslag in de browser is niet beschikbaar (privévenster?). Open de pagina in een gewoon venster.</div>'}})();
 </script>
