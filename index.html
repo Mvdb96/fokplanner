@@ -130,7 +130,7 @@ function rBirdForm(){
   <label>Foto’s</label><div id="bp">${photoImg()}</div><label class="btn fl" style="display:block;text-align:center">+ Foto toevoegen<input type="file" id="bf" accept="image/*" multiple hidden></label>
   <label class="chk" style="margin-top:10px"><input type="checkbox" id="bgone" ${bd.gone?"checked":""}>Dit dier is niet meer aanwezig</label>
   <label class="chk" style="margin-top:6px"><input type="checkbox" id="bnieuw" ${bd.nieuw?"checked":""}>Nieuw bloed</label><div class="mut" style="font-size:.8rem;margin-left:30px">Zo'n dier gebruik je liefst eenmalig in een lijn.</div>
-  <label>Ouders (mag leeg, telt mee voor verwantschap)</label><label style="display:block">${sxl("haan")}</label><div id="wpa"></div><input type="hidden" id="bpa"><label style="display:block">${sxl("hen")}</label><div id="wpm"></div><input type="hidden" id="bpm"><div class="mut" style="font-size:.8rem">Kies je beide ouders, dan wordt dit automatisch een combinatie bij Combinaties.</div><label style="display:block;margin-top:10px">Nakomelingen (mag leeg)</label><div class="mut" style="font-size:.8rem">Kies de andere ouder en daarna de nakomelingen. Dit wordt automatisch een combinatie bij Combinaties.</div><label style="display:block">Andere ouder</label><div id="wpk"></div><input type="hidden" id="bpk"><div id="wkd"></div>
+  <div id="oudsec"${bk&&bk.t==="pair"&&bd.pair===bk.id&&!bird(bd.id)?" hidden":""}><label>Ouders (mag leeg, telt mee voor verwantschap)</label><label style="display:block">${sxl("haan")}</label><div id="wpa"></div><input type="hidden" id="bpa"><label style="display:block">${sxl("hen")}</label><div id="wpm"></div><input type="hidden" id="bpm"><div class="mut" style="font-size:.8rem">Kies je beide ouders, dan wordt dit automatisch een combinatie bij Combinaties.</div><label style="display:block;margin-top:10px">Nakomelingen (mag leeg)</label><div class="mut" style="font-size:.8rem">Kies de andere ouder en daarna de nakomelingen. Dit wordt automatisch een combinatie bij Combinaties.</div><label style="display:block">Andere ouder</label><div id="wpk"></div><input type="hidden" id="bpk"><div id="wkd"></div></div>
   <label>Geboortejaar</label><input type="number" id="bborn" min="1980" max="2100" placeholder="Bijv. 2026" value="${esc(yr(bd))}">
   <label>Raskenmerken</label><div class="mut" style="font-size:.85rem">Vink aan wat je ziet. Schuif voor de sterkte (1 = zwak, 3 = sterk). Draagt het dier een kenmerk wel maar is het niet zichtbaar, vink dan “Drager” aan.</div><div id="gl" style="margin:8px 0"></div><div id="gbw"><label>Ongewenste kenmerken</label><div id="gb" style="margin:8px 0"></div></div><div id="tlw" class="hide"><label>Overige kenmerken van dit dier</label><div class="mut" style="font-size:.8rem">Deze staan niet in je fokdoel. Verwijder ze met ✕, of voeg ze toe bij Fokdoel.</div><div id="tl"></div></div>
   <label>Notities</label><textarea id="bo" rows="2">${esc(bd.notes)}</textarea>
@@ -165,7 +165,7 @@ function rPairForm(){if(pd.custom===undefined)pd.custom=!!(pd.name&&pd.name!==pA
   <label>Jaar <span class="mut" style="font-weight:400">(wordt het geboortejaar van de nakomelingen zodra die er zijn)</span></label><input type="number" id="pyear" min="1980" max="2100" value="${pairYear(pd)}"><label>Status</label><div id="pstw">${pstSeg()}</div><div id="pt"></div><div id="ps"></div><label>${sxl("haan")}</label><div class="pickrow" id="pkr"></div><label>${sxl("hen")}</label><div class="pickrow" id="pkh"></div><label class="chk" style="margin-top:8px"><input type="checkbox" ${showGone?"checked":""} onchange="setGone(this.checked)">Toon ook dieren die niet meer aanwezig zijn</label>
   ${!birds.some(b=>b.sex==="haan")||!birds.some(b=>b.sex==="hen")?'<p class="mut">Voeg eerst minstens één haan en één hen toe bij “Kippen”.</p>':""}
   <div id="pv"></div>
-  <h2>Nakomelingen</h2><div>${kidTiles(pd.id,false)}</div><p><button class="btn" onclick="addKid()">+ Nakomeling toevoegen</button></p>
+  <h2>Nakomelingen</h2><div>${kidTiles(pd.id,false)}</div><p class="row"><button class="btn" onclick="addKid()">+ Nieuw dier</button><button class="btn" onclick="kidExist()">+ Bestaand dier</button></p>
   <label>Notities</label><textarea id="po" rows="2">${esc(pd.notes)}</textarea>
   <div class="row"><button class="btn pri" onclick="savePair()">Opslaan</button><button class="btn" onclick="pd=null;pairNext=false;rPairs()">Annuleren</button></div></div>`;
   rPick();rPT();rOver()}
@@ -206,6 +206,14 @@ async function addKid(){
   pd.name=pName();pd.notes=$("po").value;pd.year=+$("pyear").value||pairYear(pd);pd.updated=Date.now();
   await put("pairs",pd);const id=pd.id;pd=null;await load();
   bd={id:uid(),name:"",sex:"haan",photo:"",traits:[],notes:"",str:{},pair:id};bk={t:"pair",id};show("birds")}
+async function kidExist(){
+  if(!pd.rooster||!pd.hen){alert("Kies eerst een haan en een hen.");return}
+  pd.name=pName();pd.notes=$("po").value;pd.year=+$("pyear").value||pairYear(pd);pd.updated=Date.now();
+  await put("pairs",pd);const id=pd.id;await load();pd=JSON.parse(JSON.stringify(pairs.find(p=>p.id===id)));
+  const l=birds.filter(b=>!b.pair&&b.id!==pd.rooster&&b.id!==pd.hen&&!b.gone),o=document.createElement("div");o.className="ov kp";o.style.cssText+=";align-items:center;padding:12px";
+  o.innerHTML=`<div class="card" style="width:100%;max-width:440px;max-height:85vh;overflow:auto;margin:0"><h2 style="margin-top:0">Bestaand dier als nakomeling</h2><p class="mut" style="margin:0 0 8px">Alleen dieren zonder ouders. Tik op een dier om het toe te voegen.</p>${l.map(b=>`<div class="card mr" style="cursor:pointer" onclick="kidSet('${b.id}','${id}')">${bTh(b)}<div style="flex:1;min-width:0"><b>${esc(b.name)}</b> <span class="mut">· ${sxl(b.sex)}${yr(b)?" · "+yr(b):""}</span></div></div>`).join("")||'<p class="mut">Er zijn geen dieren zonder ouders.</p>'}<button class="btn" style="width:100%;margin-top:8px" onclick="this.closest('.ov').remove()">Annuleren</button></div>`;
+  o.onclick=e=>{if(e.target===o)o.remove()};document.body.appendChild(o)}
+async function kidSet(bid,pid){const b=bird(bid);if(!b)return;b.pair=pid;await put("birds",b);await load();const o=document.querySelector(".ov.kp");if(o)o.remove();editPair(pid)}
 /* ---------- Drager, selectievakjes ---------- */
 const isCar=(b,t)=>tp(t)==="check"&&!!(b.car&&b.car[key(t)]);
 const isBad=t=>bad.map(key).includes(key(t));
