@@ -124,7 +124,7 @@ const bird=id=>birds.find(b=>b.id===id);
 function newBird(){bk=null;bd={id:uid(),name:"",sex:"haan",photo:"",traits:[],notes:"",str:{},pair:""};rBirds()}
 function editBird(id){bd=JSON.parse(JSON.stringify(bird(id)));rBirds()}
 function rBirdForm(){
-  $("v-birds").innerHTML=`<div class="card"><h2 style="margin-top:0">${bird(bd.id)?"Dier bewerken":"Nieuw dier"}</h2>
+  $("v-birds").innerHTML=`<div class="card"><div class="tb"><button class="btn" onclick="bd=null;rBirds()" aria-label="Annuleren" title="Annuleren (zonder opslaan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button></div><h2 style="margin-top:0">${bird(bd.id)?"Dier bewerken":"Nieuw dier"}</h2>
   <label>Naam of ringnummer</label><input id="bn" value="${esc(bd.name)}">
   <label>Geslacht</label><div class="sx"><button type="button" id="sxh" class="btn" onclick="setSex('haan')"><span style="font-size:2.6rem">${sxi("haan")}</span><br>Haan</button><button type="button" id="sxn" class="btn" onclick="setSex('hen')"><span style="font-size:2.6rem">${sxi("hen")}</span><br>Hen</button></div>
   <label>Foto’s</label><div id="bp">${photoImg()}</div><label class="btn fl" style="display:block;text-align:center">+ Foto toevoegen<input type="file" id="bf" accept="image/*" multiple hidden></label>
@@ -135,7 +135,7 @@ function rBirdForm(){
   <label>Geboortejaar <span class="mut" style="font-weight:400">(als de datum niet bekend is)</span></label><input type="number" id="bborn" min="1980" max="2100" placeholder="Bijv. 2026" value="${esc(yr(bd))}">
   <label>Raskenmerken</label><div class="mut" style="font-size:.85rem">Vink aan wat je ziet. Schuif voor de sterkte (1 = zwak, 3 = sterk). Draagt het dier een kenmerk wel maar is het niet zichtbaar, vink dan “Drager” aan.</div><div id="gl" style="margin:8px 0"></div><div id="gbw"><label>Ongewenste kenmerken</label><div id="gb" style="margin:8px 0"></div></div><div id="tlw" class="hide"><label>Overige kenmerken van dit dier</label><div class="mut" style="font-size:.8rem">Deze staan niet in je fokdoel. Verwijder ze met ✕, of voeg ze toe bij Fokdoel.</div><div id="tl"></div></div>
   <label>Notities</label><textarea id="bo" rows="2">${esc(bd.notes)}</textarea>
-  <div class="row"><button class="btn pri" onpointerup="saveBird()" onclick="if(event.detail===0)saveBird()">Opslaan</button><button class="btn" onclick="bd=null;rBirds()">Annuleren</button></div></div><button class="fab fabs" onpointerup="saveBird()" onclick="if(event.detail===0)saveBird()" aria-label="Opslaan" title="Opslaan"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>`;
+  </div><button class="fab fabs" onpointerup="saveBird()" onclick="if(event.detail===0)saveBird()" aria-label="Opslaan" title="Opslaan"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>`;
   setSex(bd.sex);{const pp=pairs.find(x=>x.id===bd.pair);if(pp){$("bpa").value=pp.rooster||"";$("bpm").value=pp.hen||""}parRender("pa","haan");parRender("pm","hen")}{const ps=pairs.filter(x=>x.rooster===bd.id||x.hen===bd.id);kidSel=new Set();$("bpk").value="";if(ps.length){const p0=ps[0];$("bpk").value=(p0.rooster===bd.id?p0.hen:p0.rooster)||"";birds.filter(x=>x.pair===p0.id).forEach(x=>kidSel.add(x.id))}parRender("pk",bd.sex==="haan"?"hen":"haan");kidRender()}
   $("bf").addEventListener("change",async e=>{const fs=[...e.target.files];e.target.value="";for(const f of fs){const ph=await cropPhoto(f);if(!ph)continue;const a=galAll(bd);a.push(ph);galSet(a);$("bp").innerHTML=photoImg()}});
   rTraits()}
@@ -162,13 +162,13 @@ async function saveBird(){if(!bd)return;
 function editPair(id){pvp=null;pd=JSON.parse(JSON.stringify(pairs.find(p=>p.id===id)));rPairs()}
 function rPairForm(){if(pd.custom===undefined)pd.custom=!!(pd.name&&pd.name!==pAuto());
   const opt=sex=>`<option value="">— kies —</option>`+birds.filter(b=>b.sex===sex).map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("");
-  $("v-pairs").innerHTML=`<div class="card"><h2 style="margin-top:0">${pairs.find(p=>p.id===pd.id)?"Combinatie bewerken":"Nieuwe combinatie"}</h2>
+  $("v-pairs").innerHTML=`<div class="card"><div class="tb"><button class="btn" onclick="pd=null;pairNext=false;rPairs()" aria-label="Annuleren" title="Annuleren (zonder opslaan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button></div><h2 style="margin-top:0">${pairs.find(p=>p.id===pd.id)?"Combinatie bewerken":"Nieuwe combinatie"}</h2>
   <label>Jaar <span class="mut" style="font-weight:400">(wordt het geboortejaar van de nakomelingen zodra die er zijn)</span></label><input type="number" id="pyear" min="1980" max="2100" value="${pairYear(pd)}"><label>Status</label><div id="pstw">${pstSeg()}</div><div id="pt"></div><div id="ps"></div><label>${sxl("haan")}</label><div class="pickrow" id="pkr"></div><label>${sxl("hen")}</label><div class="pickrow" id="pkh"></div><label class="chk" style="margin-top:8px"><input type="checkbox" ${showGone?"checked":""} onchange="setGone(this.checked)">Toon ook dieren die niet meer aanwezig zijn</label>
   ${!birds.some(b=>b.sex==="haan")||!birds.some(b=>b.sex==="hen")?'<p class="mut">Voeg eerst minstens één haan en één hen toe bij “Kippen”.</p>':""}
   <div id="pv"></div>
   <h2>Nakomelingen</h2><div>${kidTiles(pd.id,false)}</div><p class="row"><button class="btn" onclick="addKid()">+ Nieuw dier</button><button class="btn" onclick="kidExist()">+ Bestaand dier</button></p>
   <label>Notities</label><textarea id="po" rows="2">${esc(pd.notes)}</textarea>
-  <div class="row"><button class="btn pri" onclick="savePair()">Opslaan</button><button class="btn" onclick="pd=null;pairNext=false;rPairs()">Annuleren</button></div></div><button class="fab fabs" onclick="savePair()" aria-label="Opslaan" title="Opslaan"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>`;
+  </div><button class="fab fabs" onclick="savePair()" aria-label="Opslaan" title="Opslaan"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>`;
   rPick();rPT();rOver()}
 async function togFk(k,ed){const y=window.scrollY,rs=()=>{scrollTo(0,y);requestAnimationFrame(()=>scrollTo(0,y))};if(ed){const a=pd.focus||[];pd.focus=a.includes(k)?a.filter(x=>x!==k):[...a,k];rOver();rs();return}await pFocus(k);rs()}
 async function savePair(){
@@ -795,7 +795,7 @@ function bCal(act){
 function rBrood(){
   const el=$("v-brood");let h="";
   if(bp){const m=bp.mode,e=m!=="al";
-    h+=`<div class="card"><h2 style="margin-top:0">${bp.isNew?"Nieuw broedplan":"Broedplan wijzigen"}</h2>${bTiles(bp.rooster,bp.hen)}
+    h+=`<div class="card"><div class="tb"><button class="btn" onclick="bBack()" aria-label="Annuleren" title="Annuleren (zonder opslaan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button></div><h2 style="margin-top:0">${bp.isNew?"Nieuw broedplan":"Broedplan wijzigen"}</h2>${bTiles(bp.rooster,bp.hen)}
     <label>Hoe wil je plannen?</label><select onchange="bpMode(this.value)"><option value="plan"${m==="plan"?" selected":""}>Vanaf de dag van koppelen</option><option value="inleg"${m==="inleg"?" selected":""}>Ik kies de gewenste inlegdatum</option><option value="uit"${m==="uit"?" selected":""}>Ik kies de gewenste uitkomstdatum</option><option value="al"${m==="al"?" selected":""}>De eieren liggen al in</option></select>
     ${m==="plan"?`<label>Datum van koppelen</label>${dateIn(bp.start||"","bpF('start',this.value)")}`:""}
     ${m==="inleg"||m==="uit"?`<label>${m==="inleg"?"Gewenste inlegdatum":"Gewenste uitkomstdatum"}</label>${dateIn(bp.tdate||"","bpF('tdate',this.value)")}`:""}
@@ -804,7 +804,7 @@ function rBrood(){
     <label>Vanaf wanneer zijn de eieren zeker van deze haan?</label><select onchange="bpF('fert',this.value)"><option value="14"${+bp.fert===14?" selected":""}>Na 14 dagen (zeker)</option><option value="10"${+bp.fert===10?" selected":""}>Na 10 dagen (eerder, minder zeker)</option></select>`:""}
     <label>Broedduur in dagen</label><input type="number" min="17" max="30" inputmode="numeric" value="${bp.hatch}" oninput="bpF('hatch',this.value)">
     <label>Notities</label><textarea rows="2" oninput="bp.notes=this.value">${esc(bp.notes||"")}</textarea>
-    <div class="row"><button class="btn pri" onclick="bSave()">Opslaan</button><button class="btn" onclick="bBack()">Annuleren</button></div></div>
+    </div>
     <div class="card"><h2 style="margin-top:0">Planning</h2><div id="bprev"></div></div><button class="fab fabs" onclick="bSave()" aria-label="Opslaan" title="Opslaan"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>`;
     el.innerHTML=h;bPrev();return}
   const pl=bv&&brood.find(x=>x.id===bv);
