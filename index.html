@@ -736,13 +736,18 @@ function bkBar(){const el=$("bkbar");if(!el)return;const empty=!birds.length&&!p
   else el.innerHTML=""}
 /* ---------- Kuikens ---------- */
 const ICB='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',ICK='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ppTh=(b,sex,z)=>`<div style="width:${z}px;height:${z}px;flex:none;border-radius:8px;overflow:hidden;background:var(--bd);display:flex;align-items:center;justify-content:center">${b&&b.photo?`<img src="${b.photo}" alt="" style="width:100%;height:100%;object-fit:cover">`:sxi(sex).replace(/class="sx2[^"]*"/,'style="width:100%;height:100%;padding:3px;box-sizing:border-box;object-fit:contain"')}</div>`;
+const ppFace=(p,z)=>p?`${ppTh(bird(p.rooster),"haan",z)}<span style="font-weight:700">×</span>${ppTh(bird(p.hen),"hen",z)}<span class="mut" style="margin-left:4px">${pairYear(p)}</span>`:`<div style="width:${z}px;height:${z}px;flex:none;border-radius:8px;background:var(--bd);display:flex;align-items:center;justify-content:center;font-size:1.3rem">?</div><span class="mut">Onbekend</span>`;
+const ppHtml=(id,cur)=>`<details class="card" style="margin:0 0 8px;padding:8px"><summary style="display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer">${ppFace(pairs.find(x=>x.id===cur),56)}<span style="flex:1"></span><span class="mut">▾</span></summary><div style="margin-top:8px">${["",...sortPairs(pairs).map(x=>x.id)].map(k=>`<div onclick="ppSet('${id}','${k}')" style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:8px;cursor:pointer;${k===(cur||"")?"background:rgba(201,106,42,.28)":""}">${ppFace(pairs.find(x=>x.id===k),48)}</div>`).join("")}</div></details>`;
+const ppBox=(id,cur)=>`<input type="hidden" id="${id}" value="${cur||""}"><div id="w${id}">${ppHtml(id,cur||"")}</div>`;
+function ppSet(id,k){$(id).value=k;$("w"+id).innerHTML=ppHtml(id,k)}
 const ckPair=c=>pairs.find(p=>p.id===c.pair);
 const ckName=c=>c.name||("Kuiken "+(c.nr||""));
 const ckPOpts=cur=>`<option value="">Onbekend / geen combinatie</option>${sortPairs(pairs).map(p=>`<option value="${p.id}"${p.id===cur?" selected":""}>${esc(p.name)} (${pairYear(p)})</option>`).join("")}`;
 const ckTh=c=>c.photo?`<img src="${c.photo}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px;flex:none">`:`<div class="ph" style="width:64px;height:64px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--bg);font-size:1.6rem">🐣</div>`;
 function rChicks(){const el=$("v-chicks");
   if(ckAdd){el.innerHTML=`<div class="card"><div class="tb"><button class="btn" onclick="ckAdd=null;rChicks()" aria-label="Terug">${ICB}</button><h2 style="margin:0;flex:1;min-width:0">Kuikens toevoegen</h2></div>
-    <label>Combinatie</label><select id="cap">${ckPOpts(ckAdd.pair)}</select>
+    <label>Combinatie</label>${ppBox("cap",ckAdd.pair)}
     <label>Geboortedatum</label>${dateIn(ckAdd.born||todayI(),"","cab")}
     <label>Aantal kuikens</label><input id="can" type="number" inputmode="numeric" min="1" max="50" value="${ckAdd.n||1}">
     <p class="mut" style="font-size:.85rem">Foto’s, ringnummer en geslacht kun je later per kuiken toevoegen.</p></div>
@@ -751,7 +756,7 @@ function rChicks(){const el=$("v-chicks");
     el.innerHTML=`<div class="card"><div class="tb"><button class="btn" onclick="ck=null;rChicks()" aria-label="Terug" title="Terug (zonder opslaan)">${ICB}</button><h2 style="margin:0;flex:1;min-width:0">${esc(ckName(ck))}</h2></div>
     <label>Ringnummer of naam <span class="mut" style="font-weight:400">(optioneel)</span></label><input id="ckn" value="${esc(ck.name||"")}" placeholder="${esc(ckName(ck))}">
     <label>Geslacht</label>${seg([["","Nog onbekend"],["haan","Haan"],["hen","Hen"]],ck.sex||"","ckSex")}
-    <label>Combinatie</label><select id="ckp">${ckPOpts(ck.pair)}</select>
+    <label>Combinatie</label>${ppBox("ckp",ck.pair)}
     <label>Geboortedatum</label>${dateIn(ck.born||"","","ckb")}
     <label>Foto’s <span class="mut" style="font-weight:400">(optioneel)</span></label><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">${ph.map((u,i)=>`<div style="position:relative"><img src="${u}" alt="" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block"><button class="btn" style="position:absolute;top:4px;right:4px;padding:1px 8px" onclick="ckPhDel(${i})" aria-label="Verwijder foto">✕</button></div>`).join("")}</div>
     <label class="btn fl" style="display:block;text-align:center">+ Foto toevoegen<input type="file" accept="image/*" multiple hidden onchange="ckPhAdd(this)"></label>
