@@ -274,7 +274,7 @@ function backPair(){navBack=true;setTimeout(()=>navBack=false,0);const k=pbk;pvp
 /* ---------- Filters, percentagebalk, back-up ---------- */
 const wgt=g=>{const k=key(g),x=wtx[k];if(x&&!scope[k])return WS?(x[WS]||1):((x.haan||1)+(x.hen||1))/2;return wt[k]||1};
 const withS=(s,f)=>{const o=WS;WS=s||"";try{return f()}finally{WS=o}};
-const fcol=p=>p<35?"#d64545":p<60?"#e8891d":p<=75?"#a9b81f":"#2f9e5a";
+const fcol=p=>p<35?"#d64545":p<60?"#e8891d":p<75?"#a9b81f":"#2f9e5a";
 
 const barH=(b,nc)=>{const p=fit(b);return `<div class="fit${nc?"":" fitx"}" title="Hoe dicht dit dier bij je fokdoel zit"${nc?"":` onclick="event.stopPropagation();expB('${b.id}')"`}><div class="bar"><i style="width:${p}%;background:${fcol(p)}"></i></div><b>${p}%</b>${plusTag(plusOf(b))}</div>`};
 const barS=b=>{const p=fit(b);return `<div class="fit" style="margin:4px 0 0;gap:4px" title="${p}%"><div class="bar" style="height:6px;flex:1"><i style="width:${p}%;background:${fcol(p)}"></i></div><span style="font-size:.6rem;line-height:1;color:var(--mut)">${p}%${plusOf(b)>0?` +${plusOf(b)}★`:""}</span></div>`};
