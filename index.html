@@ -103,7 +103,7 @@ h3.gh{margin:14px 0 4px;font-size:1rem;color:var(--mut)}
 <main>
 <header class="top"><button id="mb" class="btn" onclick="toggleMenu()" aria-label="Menu">☰</button><h1>Fokplanner</h1><span class="mut" id="mt">Fokdieren</span></header>
 <nav id="mn" class="menu hide"><button class="tab on" id="t-birds" onclick="tab('birds');toggleMenu(false)">Fokdieren</button><button class="tab" id="t-chicks" onclick="tab('chicks');toggleMenu(false)">Kuikens</button><button class="tab" id="t-pairs" onclick="tab('pairs');toggleMenu(false)">Combinaties</button><button class="tab" id="t-match" onclick="tab('match');toggleMenu(false)">Beste match</button><button class="tab" id="t-brood" onclick="tab('brood');toggleMenu(false)">Broedkalender</button><button class="tab" id="t-cmp" onclick="tab('cmp');toggleMenu(false)">Vergelijken</button><button class="tab" id="t-goal" onclick="tab('goal');toggleMenu(false)">Fokdoel</button><button class="tab" id="t-data" onclick="tab('data');toggleMenu(false)">Instellingen</button></nav>
-<div id="bkbar"></div><div id="rvbar"></div><div id="brbar"></div>
+<div id="bkbar"></div><div id="rvbar"></div><div id="ckbar"></div><div id="brbar"></div>
 <div id="v-birds"></div>
 <div id="v-chicks" class="hide"></div> <div id="v-pairs" class="hide"></div>
 <div id="v-match" class="hide"></div>
@@ -126,7 +126,7 @@ const all=s=>new Promise(ok=>{const q=db.transaction(s).objectStore(s).getAll();
 const put=(s,o)=>new Promise(ok=>{const t=db.transaction(s,"readwrite");t.objectStore(s).put(o);t.oncomplete=ok});
 const rm=(s,id)=>new Promise(ok=>{const t=db.transaction(s,"readwrite");t.objectStore(s).delete(id);t.oncomplete=ok});
 async function load(){{const ab=await all("birds");birds=ab.filter(b=>!b.kuiken);chicks=ab.filter(b=>b.kuiken)}pairs=await all("pairs");const mt=await all("meta"),g=mt.find(x=>x.id==="goal"),k=mt.find(x=>x.id==="known");goal=g?g.traits:DEF.slice();bad=(g&&g.bad)||[];types=g?(g.types||{...DEFT}):{...DEFT};wt=(g&&g.wt)||{};wtx=(g&&g.wtx)||{};link=(g&&g.link)||{};cats=(g&&g.cats)||{};ts=(g&&g.ts)||75;scope=(g&&g.scope)||{};bonus=(g&&g.bonus)||{};{const bro=mt.find(x=>x.id==="brood");brood=bro&&bro.plans?bro.plans:[]}{const bm=mt.find(x=>x.id==="bk");bkd=bm?{last:bm.last||0,snooze:bm.snooze||0}:{last:0,snooze:0}}birds.forEach(b=>b.traits=ordT(b.traits));for(const b of birds){const f=b.traits.filter(x=>applies(b,x));if(f.length!==b.traits.length){b.traits=f;await put("birds",b)}}for(const b of birds){if(!b.added&&hasDate(b)){b.added=todayI();await put("birds",b)}}known=k?k.traits:[];const hd=mt.find(x=>x.id==="hidden");hidden=hd?hd.traits:[];const vw=mt.find(x=>x.id==="view");vmode=vw?vw.v:"groot";sortB=(vw&&vw.sb)||"naam";sortP=(vw&&vw.sp)||"jaar-nieuw";showGone=!!(vw&&vw.sg);msex=(vw&&vw.sx)||"";{const th=mt.find(x=>x.id==="theme");thm=th?{ac:th.ac,bg:th.bg,card:th.card}:{};applyTheme()}const rf=mt.find(x=>x.id==="ref");ref=rf?{haan:rf.haan||[],hen:rf.hen||[]}:{haan:[],hen:[]};birds.sort((a,b)=>a.name.localeCompare(b.name));pairs.sort((a,b)=>b.updated-a.updated)}
-function show(v){if(db){bkBar();rvBar();brBar()}$("mt").textContent={birds:"Fokdieren",chicks:"Kuikens",pairs:"Combinaties",match:"Beste match",cmp:"Vergelijken",brood:"Broedkalender",goal:"Fokdoel",data:"Instellingen"}[v];if(v!=="birds")pv=null;if(v!=="pairs")pvp=null;["birds","chicks","pairs","match","cmp","brood","goal","data"].forEach(x=>{$("v-"+x).classList.toggle("hide",x!==v);$("t-"+x).classList.toggle("on",x===v)});({birds:rBirds,chicks:rChicks,pairs:rPairs,match:rMatch,cmp:rCmp,brood:rBrood,goal:rGoal,data:rData})[v]()}
+function show(v){if(db){bkBar();rvBar();brBar();ckBar()}$("mt").textContent={birds:"Fokdieren",chicks:"Kuikens",pairs:"Combinaties",match:"Beste match",cmp:"Vergelijken",brood:"Broedkalender",goal:"Fokdoel",data:"Instellingen"}[v];if(v!=="birds")pv=null;if(v!=="pairs")pvp=null;["birds","chicks","pairs","match","cmp","brood","goal","data"].forEach(x=>{$("v-"+x).classList.toggle("hide",x!==v);$("t-"+x).classList.toggle("on",x===v)});({birds:rBirds,chicks:rChicks,pairs:rPairs,match:rMatch,cmp:rCmp,brood:rBrood,goal:rGoal,data:rData})[v]()}
 const bird=id=>birds.find(b=>b.id===id);
 /* ---------- Kippen ---------- */
 function newBird(){bk=null;bd={id:uid(),name:"",sex:"haan",photo:"",traits:[],notes:"",str:{},pair:""};rBirds()}
@@ -749,6 +749,7 @@ function rChicks(){const el=$("v-chicks");
   if(ckAdd){el.innerHTML=`<div class="card"><div class="tb"><button class="btn" onclick="ckAdd=null;rChicks()" aria-label="Terug">${ICB}</button><h2 style="margin:0;flex:1;min-width:0">Kuikens toevoegen</h2></div>
     <label>Combinatie</label>${ppBox("cap",ckAdd.pair)}
     <label>Geboortedatum</label>${dateIn(ckAdd.born||todayI(),"","cab")}
+    ${ckAdd.plan&&brood.find(x=>x.id===ckAdd.plan)?`<p class="mut" style="font-size:.85rem;margin:6px 0 0">Hoort bij het broedplan met uitkomst ${fmtL(bPlan(brood.find(x=>x.id===ckAdd.plan)).hatch)}.</p>`:""}
     <label>Aantal kuikens</label><input id="can" type="number" inputmode="numeric" min="1" max="50" value="${ckAdd.n||1}">
     <p class="mut" style="font-size:.85rem">Foto’s, ringnummer en geslacht kun je later per kuiken toevoegen.</p></div>
     <button class="fab fabs" onclick="ckAddSave()" aria-label="Opslaan" title="Opslaan">${ICK}</button>`;return}
@@ -757,7 +758,7 @@ function rChicks(){const el=$("v-chicks");
     <label>Ringnummer of naam <span class="mut" style="font-weight:400">(optioneel)</span></label><input id="ckn" value="${esc(ck.name||"")}" placeholder="${esc(ckName(ck))}">
     <label>Geslacht</label>${seg([["","Nog onbekend"],["haan","Haan"],["hen","Hen"]],ck.sex||"","ckSex")}
     <label>Combinatie</label>${ppBox("ckp",ck.pair)}
-    <label>Geboortedatum</label>${dateIn(ck.born||"","","ckb")}
+    <label>Geboortedatum</label>${dateIn(ck.born||"","","ckb")}${ck.plan&&brood.find(x=>x.id===ck.plan)?`<p style="margin:6px 0 0"><button class="btn" onclick="bOpen('${ck.plan}')">Bekijk broedplan</button></p>`:""}
     <label>Foto’s <span class="mut" style="font-weight:400">(optioneel)</span></label><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">${ph.map((u,i)=>`<div style="position:relative"><img src="${u}" alt="" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block"><button class="btn" style="position:absolute;top:4px;right:4px;padding:1px 8px" onclick="ckPhDel(${i})" aria-label="Verwijder foto">✕</button></div>`).join("")}</div>
     <label class="btn fl" style="display:block;text-align:center">+ Foto toevoegen<input type="file" accept="image/*" multiple hidden onchange="ckPhAdd(this)"></label>
     <label>Notities</label><textarea id="cko" rows="2">${esc(ck.notes||"")}</textarea>
@@ -776,12 +777,24 @@ function ckSex(v){ckKeep();ck.sex=v;rChicks()}
 async function ckPhAdd(inp){const fs=[...inp.files];inp.value="";ckKeep();const a=[ck.photo,...(ck.photos||[])].filter(Boolean);for(const f of fs){const ph=await cropPhoto(f);if(ph)a.push(ph)}ck.photo=a[0]||"";ck.photos=a.slice(1);rChicks()}
 function ckPhDel(i){ckKeep();const a=[ck.photo,...(ck.photos||[])].filter(Boolean);a.splice(i,1);ck.photo=a[0]||"";ck.photos=a.slice(1);rChicks()}
 async function ckSave(){ckKeep();await put("birds",ck);ck=null;await load();rChicks()}
-async function ckAddSave(){const pair=$("cap").value,born=$("cab").value||"",n=Math.max(1,Math.min(50,parseInt($("can").value)||1));let nr=chicks.filter(c=>(c.pair||"")===pair).reduce((m,c)=>Math.max(m,c.nr||0),0);
-  for(let i=0;i<n;i++)await put("birds",{id:uid(),kuiken:true,nr:++nr,name:"",sex:"",photo:"",photos:[],traits:[],notes:"",str:{},pair,born});ckAdd=null;await load();rChicks()}
+async function ckAddSave(){const pair=$("cap").value,born=$("cab").value||"";if(!ckAdd.plan&&pair&&born){const pp=pairs.find(x=>x.id===pair),m=pp&&brood.find(x=>x.rooster===pp.rooster&&x.hen===pp.hen&&Math.abs(diffD(bPlan(x).hatch,born))<=10);if(m)ckAdd.plan=m.id}const n=Math.max(1,Math.min(50,parseInt($("can").value)||1));let nr=chicks.filter(c=>(c.pair||"")===pair).reduce((m,c)=>Math.max(m,c.nr||0),0);
+  for(let i=0;i<n;i++)await put("birds",{id:uid(),kuiken:true,nr:++nr,name:"",sex:"",photo:"",photos:[],traits:[],notes:"",str:{},pair,born,...(ckAdd.plan?{plan:ckAdd.plan}:{})});ckAdd=null;await load();rChicks();ckBar()}
 function ckDel(){ask("Weet je zeker dat je wilt verwijderen?",async()=>{await rm("birds",ck.id);ck=null;await load();rChicks()})}
 async function ckPromote(){ckKeep();if(!ck.sex){ask("Kies eerst of het een haan of een hen is.",()=>{},"pri");return}
   if(!ck.name){const p=ckPair(ck);ck.name=(p?p.name+" ":"")+"kuiken "+(ck.nr||"")}
   const b={...ck};delete b.kuiken;delete b.nr;b.added=todayI();await put("birds",b);ck=null;await load();bk=null;pv=null;bd=JSON.parse(JSON.stringify(b));show("birds");scrollTo(0,0)}
+/* ---------- Kuikens bij broedplannen ---------- */
+const planPair=pl=>pairs.find(x=>x.rooster===pl.rooster&&x.hen===pl.hen);
+const planKids=id=>chicks.filter(c=>c.plan===id),planDone=id=>birds.filter(b=>b.plan===id);
+function bChicks(pl,q){const t=todayI(),k=planKids(pl.id),d=planDone(pl.id);if(q.b0>t&&!k.length&&!d.length)return"";
+  const row=(c,f)=>`<div style="display:flex;gap:10px;align-items:center;padding:6px 0;cursor:pointer;border-bottom:1px solid var(--bd)" onclick="${f}">${c.photo?`<img src="${c.photo}" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:8px">`:`<div style="width:44px;height:44px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:1.2rem">🐣</div>`}<div style="flex:1;min-width:0"><b>${esc(ckName(c))}</b> <span class="mut">· ${c.sex?SXN(c.sex):"geslacht onbekend"}</span></div><span class="mut">›</span></div>`;
+  return `<h3 style="margin:14px 0 4px">Kuikens${k.length+d.length?` (${k.length+d.length})`:""}</h3>${k.map(c=>row(c,`ckFrom('${c.id}')`)).join("")}${d.map(b=>row(b,`openBird('${b.id}')`)).join("")}${!k.length&&!d.length?`<p class="mut" style="margin:4px 0">${q.hatch<=t?"Nog geen kuikens ingevoerd.":"Uitkomst verwacht op "+fmtL(q.hatch)+"."}</p>`:""}<button class="btn${k.length+d.length?"":" pri"}" style="width:100%;margin-top:8px" onclick="ckFromPlan('${pl.id}')">+ Kuikens invoeren</button>`}
+function ckFromPlan(id){const pl=brood.find(x=>x.id===id);if(!pl)return;const q=bPlan(pl),pp=planPair(pl),t=todayI();ckAdd={pair:pp?pp.id:"",born:q.hatch<=t?q.hatch:t,n:1,plan:id};ck=null;show("chicks");scrollTo(0,0)}
+function ckFrom(id){show("chicks");ckOpen(id)}
+async function ckSkip(id){const p=brood.find(x=>x.id===id);if(!p)return;p.ckSkip=true;await saveBrood();ckBar()}
+function ckBar(){const el=$("ckbar");if(!el)return;const t=todayI();
+  const l=brood.filter(p=>{if(p.ckSkip)return false;const h=bPlan(p).hatch;return h<=t&&diffD(h,t)<=30&&!planKids(p.id).length&&!planDone(p.id).length});
+  el.innerHTML=l.length?`<div class="card" style="margin:0 0 10px"><b>Kuikens uitgekomen?</b>${l.map(p=>`<div style="padding:8px 0 0"><div class="mut">${bNm(p.rooster)} × ${bNm(p.hen)} · uitkomst ${fmtL(bPlan(p).hatch)}</div><div class="row" style="margin-top:6px"><button class="btn pri" onclick="ckFromPlan('${p.id}')">Kuikens invoeren</button><button class="btn" onclick="ckSkip('${p.id}')">Niet nodig</button></div></div>`).join("")}</div>`:""}
 /* ---------- Uitleg score ---------- */
 function sheet(html){const o=document.createElement("div"),t0=Date.now();o.className="lpm";o.onclick=e=>{if(e.target===o&&Date.now()-t0>400)o.remove()};o.innerHTML=`<div class="card xp">${html}<button class="btn" onclick="this.closest('.lpm').remove()">Sluiten</button></div>`;document.body.appendChild(o)}
 const pt=x=>(Math.round(x*10)/10).toString().replace(".",",");
@@ -942,7 +955,7 @@ function rBrood(){
   if(pl){
     const s=bStat(pl),q=s.q,t=todayI();
     const est=!q.inl&&diffD(q.sp,t)>=0&&diffD(q.b0,t)<0?`<p style="margin:8px 0">Verwacht ± ${Math.min(q.eggs,Math.floor(diffD(q.sp,t)*2/3))} van ${q.eggs} eieren tot nu toe.</p>`:"";
-    h+=`<button class="btn" onclick="bBack()">‹ Terug</button><div class="card" style="margin-top:10px"><h2 style="margin-top:0">Broedplan</h2>${bTiles(pl.rooster,pl.hen)}<div><span class="tag" style="margin:0">${s.txt}</span></div>${est}${pl.notes?`<p class="mut" style="white-space:pre-wrap">${esc(pl.notes)}</p>`:""}${bInfo(q)}${bTL(q)}
+    h+=`<button class="btn" onclick="bBack()">‹ Terug</button><div class="card" style="margin-top:10px"><h2 style="margin-top:0">Broedplan</h2>${bTiles(pl.rooster,pl.hen)}<div><span class="tag" style="margin:0">${s.txt}</span></div>${est}${pl.notes?`<p class="mut" style="white-space:pre-wrap">${esc(pl.notes)}</p>`:""}${bInfo(q)}${bTL(q)}${bChicks(pl,q)}
     <div class="row" style="margin-top:8px"><button class="btn" onclick="bEdit('${pl.id}')">Wijzigen</button><button class="btn" onclick="bPair('${pl.id}')">Naar combinatie</button></div>
     <div class="row"><button class="btn" onclick="bDone('${pl.id}',${!pl.done})">${pl.done?"Heropenen":"Markeer als afgerond"}</button><button class="btn del" onclick="bDel('${pl.id}')">Verwijderen</button></div></div>`+icsCard(pl.id);
     el.innerHTML=h;return}
@@ -1016,7 +1029,7 @@ const riskH=k=>k&&k.n.length?`<div class="rkw">${k.n.map(q=>`<div class="rk" sty
 const riskTag=k=>k&&k.t===2?`<div class="rk" style="--c:var(--${k.t===2?"bad":"org"});margin-top:6px">${k.t===2?"Liever niet: hoge inteelt in een al ingeteelde lijn":"Let op: hoge inteelt"}</div>`:"";
 const seasonYear=()=>{const d=new Date();return d.getFullYear()+(d.getMonth()>=7?1:0)};
 /* ---------- Start ---------- */
-(async()=>{try{db=await open();await load();rBirds();bkBar();rvBar();brBar();try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}catch(e){$("v-birds").innerHTML='<div class="card">Opslag in de browser is niet beschikbaar (privévenster?). Open de pagina in een gewoon venster.</div>'}})();
+(async()=>{try{db=await open();await load();rBirds();bkBar();rvBar();brBar();ckBar();try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}catch(e){$("v-birds").innerHTML='<div class="card">Opslag in de browser is niet beschikbaar (privévenster?). Open de pagina in een gewoon venster.</div>'}})();
 </script>
 <script>if("serviceWorker" in navigator)addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});</script>
 </body>
