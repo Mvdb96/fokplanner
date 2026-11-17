@@ -621,7 +621,13 @@ const navRoot=()=>!pv&&!pvp&&!bd&&!pd&&!bv&&!bp&&!bch;
 function navPush(){if(navRestoring)return;const k=navKey();if(k===navLast)return;scrollMem[navLast]=lastY;navLast=k;const y=(navBack||navRoot())?(scrollMem[k]||0):0;navBack=false;scrollTo(0,y);lastY=y;try{history.pushState({tab:curTab,pv:pv||null,pvp:pvp||null,ms:ms||"",bv:bv||null,f:!!(bd||pd||bp)},"")}catch(e){}}
 {const o=show;show=function(v){curTab=v;o(v);navPush()}}
 ["rBirds","rPairs","rMatch","rCmp","rGoal","rData","rBrood"].forEach(n=>{const o=window[n];if(typeof o!=="function")return;window[n]=function(){const r=o.apply(this,arguments);navPush();return r}});
-addEventListener("popstate",e=>{const st=e.state;if(!st)return;
+/* terugknop sluit eerst een geopend venster */
+let ovSkip=0;const OVS=".ov,.lpm,.cr";
+new MutationObserver(ms=>{for(const m of ms){m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.matches(OVS)){n._h=1;try{history.pushState({...(history.state||{}),ov:1},"")}catch(e){}}});m.removedNodes.forEach(n=>{if(n.nodeType===1&&n._h&&!n._popped){ovSkip++;try{history.back()}catch(e){ovSkip--}}})}}).observe(document.body,{childList:true});
+addEventListener("popstate",e=>{if(ovSkip>0){ovSkip--;return}
+  const top=[...document.body.children].reverse().find(n=>n.matches&&n.matches(OVS));
+  if(top){top._popped=1;const b=top.querySelector("#crno,#an,#lpx,.lbx")||[...top.querySelectorAll("button")].find(x=>/^(Sluiten|Annuleren|Nee)$/.test(x.textContent.trim()));if(b)b.click();if(top.parentNode)top.remove();return}
+  const st=e.state;if(!st)return;
   if(st.f){history.back();return}
   scrollMem[navLast]=lastY;navRestoring=true;try{bd=null;pd=null;bp=null;bv=st.bv||null;curTab=st.tab;pv=st.pv;pvp=st.pvp;ms=st.ms;const m=$("mn");if(m)m.classList.add("hide");show(st.tab);navLast=navKey();const yy=scrollMem[navLast]||0;scrollTo(0,yy);requestAnimationFrame(()=>scrollTo(0,yy))}finally{navRestoring=false}});
 try{history.replaceState({tab:"birds",pv:null,pvp:null,ms:"",f:false},"");navLast=navKey()}catch(e){}
