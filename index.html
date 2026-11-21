@@ -126,6 +126,7 @@ const all=s=>new Promise(ok=>{const q=db.transaction(s).objectStore(s).getAll();
 const put=(s,o)=>new Promise(ok=>{const t=db.transaction(s,"readwrite");t.objectStore(s).put(o);t.oncomplete=ok});
 const rm=(s,id)=>new Promise(ok=>{const t=db.transaction(s,"readwrite");t.objectStore(s).delete(id);t.oncomplete=ok});
 let pnE=null;
+function pnTake(p){const t=(p._nn||"").trim();delete p._nn;if(t){p.log=p.log||[];p.log.push({id:uid(),d:todayI(),t})}}
 const pnLog=p=>{const l=(p.log||[]).slice();if(p.notes&&p.notes.trim())l.push({id:"old",d:"",t:p.notes});return l.sort((a,b)=>(b.d||"").localeCompare(a.d||""))};
 function pNotes(p){const l=pnLog(p);return `<h2>Notities${l.length?` <span class="mut" style="font-weight:400;font-size:1rem">(${l.length})</span>`:""}</h2>
   <textarea id="pnt" rows="2" placeholder="Nieuwe notitie…"></textarea><button class="btn pri" style="width:100%;margin-top:6px" onclick="pnAdd('${p.id}')">Notitie toevoegen</button>
@@ -186,14 +187,14 @@ function rPairForm(){if(pd.custom===undefined)pd.custom=!!(pd.name&&pd.name!==pA
   <label>Jaar <span class="mut" style="font-weight:400">(wordt het geboortejaar van de nakomelingen zodra die er zijn)</span></label><input type="number" id="pyear" min="1980" max="2100" value="${pairYear(pd)}"><label>Status</label><div id="pstw">${pstSeg()}</div><div id="pt"></div><div id="ps"></div><label>${sxl("haan")}</label><div class="pickrow" id="pkr"></div><label>${sxl("hen")}</label><div class="pickrow" id="pkh"></div><label class="chk" style="margin-top:8px"><input type="checkbox" ${showGone?"checked":""} onchange="setGone(this.checked)">Toon ook dieren die niet meer aanwezig zijn</label>
   ${!birds.some(b=>b.sex==="haan")||!birds.some(b=>b.sex==="hen")?'<p class="mut">Voeg eerst minstens één haan en één hen toe bij “Kippen”.</p>':""}
   <div id="pv"></div>
-  <h2>Nakomelingen</h2><div>${kidTiles(pd.id,false)}</div><p class="row"><button class="btn" onclick="addKid()">+ Nieuw dier</button><button class="btn" onclick="kidExist()">+ Bestaand dier</button></p>
+  <h2>Nakomelingen</h2><div>${kidTiles(pd.id,false)}</div><p class="row"><button class="btn" onclick="addKid()">+ Nieuw dier</button><button class="btn" onclick="kidExist()">+ Bestaand dier</button></p>${pairs.some(x=>x.id===pd.id)?"":`<label>Notitie <span class="mut" style="font-weight:400">(optioneel)</span></label><textarea rows="2" placeholder="Bijvoorbeeld waarom je deze combinatie maakt" oninput="pd._nn=this.value">${esc(pd._nn||"")}</textarea>`}
   </div><button class="fab fabs" onclick="savePair()" aria-label="Opslaan" title="Opslaan"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>`;
   rPick();rPT();rOver()}
 async function togFk(k,ed){const y=window.scrollY,rs=()=>{scrollTo(0,y);requestAnimationFrame(()=>scrollTo(0,y))};if(ed){const a=pd.focus||[];pd.focus=a.includes(k)?a.filter(x=>x!==k):[...a,k];rOver();rs();return}await pFocus(k);rs()}
 async function savePair(){
   if(!pd.rooster||!pd.hen){alert("Kies zowel een haan als een hen.");return}
   const r=bird(pd.rooster),h=bird(pd.hen);
-  pd.name=pName();pd.year=+$("pyear").value||pairYear(pd);pd.updated=Date.now();
+  pd.name=pName();pd.year=+$("pyear").value||pairYear(pd);pd.updated=Date.now();pnTake(pd);
   await put("pairs",pd);const nx=pairNext,r0=pd.rooster,h0=pd.hen;pairNext=false;pvp=pd.id;pd=null;await load();if(nx){bNew(r0,h0);return}rPairs()}
 
 /* ---------- Fokdoel ---------- */
@@ -223,12 +224,12 @@ document.addEventListener("click",e=>{const d=$("dd");if(d&&!e.target.closest("#
 async function addKid(){
   if(!pd.rooster||!pd.hen){alert("Kies eerst een haan en een hen.");return}
   const r=bird(pd.rooster),h=bird(pd.hen);
-  pd.name=pName();pd.year=+$("pyear").value||pairYear(pd);pd.updated=Date.now();
+  pd.name=pName();pd.year=+$("pyear").value||pairYear(pd);pd.updated=Date.now();pnTake(pd);
   await put("pairs",pd);const id=pd.id;pd=null;await load();
   bd={id:uid(),name:"",sex:"haan",photo:"",traits:[],notes:"",str:{},pair:id};bk={t:"pair",id};show("birds")}
 async function kidExist(){
   if(!pd.rooster||!pd.hen){alert("Kies eerst een haan en een hen.");return}
-  pd.name=pName();pd.year=+$("pyear").value||pairYear(pd);pd.updated=Date.now();
+  pd.name=pName();pd.year=+$("pyear").value||pairYear(pd);pd.updated=Date.now();pnTake(pd);
   await put("pairs",pd);const id=pd.id;await load();pd=JSON.parse(JSON.stringify(pairs.find(p=>p.id===id)));
   const l=birds.filter(b=>{const q=b.pair&&pairs.find(p=>p.id===b.pair);return(!q||(!bird(q.rooster)&&!bird(q.hen)))&&b.id!==pd.rooster&&b.id!==pd.hen}).sort((a,c)=>(a.gone?1:0)-(c.gone?1:0)),o=document.createElement("div");o.className="ov kp";o.style.cssText+=";align-items:center;padding:12px";
   o.innerHTML=`<div class="card" style="width:100%;max-width:440px;max-height:85vh;overflow:auto;margin:0"><h2 style="margin-top:0">Bestaand dier als nakomeling</h2><p class="mut" style="margin:0 0 8px">Alleen dieren zonder ouders. Tik op een dier om het toe te voegen.</p>${l.map(b=>`<div class="card mr" style="cursor:pointer" onclick="kidSet('${b.id}','${id}')">${bTh(b)}<div style="flex:1;min-width:0"><b>${esc(b.name)}</b> <span class="mut">· ${sxl(b.sex)}${yr(b)?" · "+yr(b):""}${b.gone?" · niet meer aanwezig":""}</span></div></div>`).join("")||'<p class="mut">Er zijn geen dieren zonder ouders.</p>'}<button class="btn" style="width:100%;margin-top:8px" onclick="this.closest('.ov').remove()">Annuleren</button></div>`;
