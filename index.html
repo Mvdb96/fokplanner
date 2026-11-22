@@ -131,8 +131,7 @@ const ICN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 const pnDate=d=>d?esc(new Date(d+"T12:00:00").toLocaleDateString("nl-NL",{day:"numeric",month:"long",year:"numeric"})):"Eerdere notitie";
 function pnPop(id){const p=pairs.find(x=>x.id===id);if(!p)return;const l=pnLog(p);
   const html=`<h2 style="margin:0 0 4px">Notities</h2><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="flex:none;width:40px">${th2(bird(p.rooster),40)}</span><b>×</b><span style="flex:none;width:40px">${th2(bird(p.hen),40)}</span><span class="mut">${pairYear(p)}</span></div>
-    ${l.map(n=>`<div style="border-bottom:1px solid var(--bd);padding:8px 0"><div class="mut" style="font-size:.8rem">${pnDate(n.d)}</div><div style="white-space:pre-wrap">${esc(n.t)}</div></div>`).join("")||'<p class="mut">Nog geen notities.</p>'}
-    <textarea id="pnpt" rows="2" placeholder="Nieuwe notitie…" style="margin-top:10px"></textarea><button class="btn pri" style="width:100%;margin-top:6px" onclick="pnPopAdd('${p.id}')">Notitie toevoegen</button>`;
+    ${l.map(n=>`<div style="border-bottom:1px solid var(--bd);padding:8px 0"><div class="mut" style="font-size:.8rem">${pnDate(n.d)}</div><div style="white-space:pre-wrap">${esc(n.t)}</div></div>`).join("")||'<p class="mut">Nog geen notities.</p>'}`;
   const o=document.querySelector(".lpm.pnp");if(o){o.querySelector(".card").innerHTML=html+`<button class="btn" onclick="this.closest('.lpm').remove()">Sluiten</button>`;return}
   sheet(html);const n=[...document.querySelectorAll(".lpm")].pop();if(n)n.classList.add("pnp")}
 async function pnPopAdd(id){const p=pairs.find(x=>x.id===id),t=$("pnpt").value.trim();if(!p||!t)return;p.log=p.log||[];p.log.push({id:uid(),d:todayI(),t});p.updated=Date.now();await put("pairs",p);await load();rPairList();pnPop(id)}
